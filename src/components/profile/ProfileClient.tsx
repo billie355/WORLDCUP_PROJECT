@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { updateProfile } from '@/lib/actions/auth'
+import { updateProfile, signOut } from '@/lib/actions/auth'
 import { generateShareCard } from '@/lib/actions/share'
 import { getInitials, getAccuracyPercentage } from '@/lib/utils'
-import { User, Globe, Save, Share2, Camera, Trophy, Target, TrendingUp, Loader2 } from 'lucide-react'
+import { User, Globe, Save, Share2, Camera, Trophy, Target, TrendingUp, Loader2, LogOut } from 'lucide-react'
 import { COUNTRIES } from '@/lib/constants'
 import toast from 'react-hot-toast'
 import type { Profile, Leaderboard } from '@/types'
@@ -272,6 +272,17 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
             </button>
           )}
         </form>
+
+        <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--color-border)' }}>
+          <button
+            onClick={() => startTransition(async () => { await signOut() })}
+            disabled={isPending}
+            className="btn btn-ghost"
+            style={{ width: '100%', color: 'var(--color-red)' }}
+          >
+            <LogOut size={16} /> Sign Out
+          </button>
+        </div>
       </div>
     </div>
   )
