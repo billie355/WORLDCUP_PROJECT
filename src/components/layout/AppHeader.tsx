@@ -2,6 +2,7 @@
 
 import { Bell, Search } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
+import toast from 'react-hot-toast'
 import type { Profile, Leaderboard } from '@/types'
 
 interface AppHeaderProps {
@@ -59,6 +60,7 @@ export default function AppHeader({ profile, leaderboard }: AppHeaderProps) {
         {/* Notifications bell */}
         <button
           id="notifications-btn"
+          onClick={() => toast('No new notifications yet!', { icon: '🔔' })}
           className="btn btn-ghost"
           style={{ padding: 8, borderRadius: '50%', width: 38, height: 38, position: 'relative' }}
           title="Notifications"
