@@ -113,7 +113,8 @@ export async function updateProfile(
     const avatarUrl = formData.get('avatar_url') as string
     const { error } = await admin
       .from('profiles')
-      .upsert({ id: user.id, username: user.id, avatar_url: avatarUrl }, { onConflict: 'id' })
+      .update({ avatar_url: avatarUrl })
+      .eq('id', user.id)
     if (error) return { error: error.message }
     revalidatePath('/', 'layout')
     return { success: true }
