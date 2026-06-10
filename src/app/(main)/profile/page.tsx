@@ -19,7 +19,7 @@ export default async function ProfilePage() {
   ])
 
   return (
-    <div>
+    <div style={{ maxWidth: 1000, margin: '0 auto' }}>
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: 8 }}>
           👤 My Profile

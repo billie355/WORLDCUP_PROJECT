@@ -39,7 +39,7 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div style={{ maxWidth: 1200 }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
       {/* Welcome */}
       <div style={{ marginBottom: 40 }}>
         <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, marginBottom: 8 }}>
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 40 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 20, marginBottom: 40 }}>
         {stats.map(({ label, value, icon: Icon, color, suffix }) => (
           <div key={label} className="card animate-slide-up" style={{ padding: 24 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 32 }}>
         {/* Upcoming matches */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>

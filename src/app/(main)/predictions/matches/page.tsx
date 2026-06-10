@@ -18,7 +18,7 @@ export default async function MatchPredictionsPage() {
   }, {})
 
   return (
-    <div style={{ maxWidth: 1100 }}>
+    <div style={{ maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: 8 }}>
           ⚽ Match Predictions
