@@ -1,6 +1,13 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false, // Prevents auto-zooming on inputs
+}
 
 export const metadata: Metadata = {
   title: {
@@ -41,8 +48,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body>
-        <div style={{ position: 'relative', zIndex: 1 }}>
+      <body style={{ overflowX: 'hidden', width: '100%', WebkitTextSizeAdjust: '100%' }}>
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', overflowX: 'hidden' }}>
           {children}
         </div>
         <Toaster
