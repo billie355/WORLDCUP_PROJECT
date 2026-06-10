@@ -4,11 +4,12 @@ import { useState, useTransition, useRef } from 'react'
 import { updateProfile, signOut } from '@/lib/actions/auth'
 import { generateShareCard } from '@/lib/actions/share'
 import { getInitials, getAccuracyPercentage } from '@/lib/utils'
-import { User, Globe, Save, Share2, Camera, Trophy, Target, TrendingUp, Loader2, LogOut } from 'lucide-react'
+import { User, Globe, Save, Share2, Camera, Trophy, Target, TrendingUp, Loader2, LogOut, CheckCircle, XCircle } from 'lucide-react'
 import { COUNTRIES } from '@/lib/constants'
 import toast from 'react-hot-toast'
 import type { Profile, Leaderboard } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import { formatKickoffTime } from '@/lib/utils'
 
 interface ProfileClientProps {
   profile: Profile | null
@@ -115,7 +116,8 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
   }
 
   return (
-    <div style={{ maxWidth: 900, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: 32, alignItems: 'start' }}>
+    <div>
+      <div style={{ maxWidth: 900, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: 32, alignItems: 'start', marginBottom: 32 }}>
       {/* Hidden file input for avatar */}
       <input
         ref={fileInputRef}
@@ -273,17 +275,75 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
           )}
         </form>
 
-        <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--color-border)' }}>
-          <button
-            onClick={() => startTransition(async () => { await signOut() })}
-            disabled={isPending}
-            className="btn btn-ghost"
-            style={{ width: '100%', color: 'var(--color-red)' }}
-          >
-            <LogOut size={16} /> Sign Out
-          </button>
+          <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--color-border)' }}>
+            <button
+              onClick={() => startTransition(async () => { await signOut() })}
+              disabled={isPending}
+              className="btn btn-ghost"
+              style={{ width: '100%', color: 'var(--color-red)' }}
+            >
+              <LogOut size={16} /> Sign Out
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  )
+
+      {/* Predictions History */}
+      <div style={{ maxWidth: 900 }}>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: 16 }}>📜 My Recent Predictions</h3>
+        {predictions.length === 0 ? (
+          <div className="card" style={{ padding: '32px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            No predictions made yet.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', gap: 16 }}>
+            {predictions.map((pred: any) => {
+              const hasResult = pred.match?.home_score !== null
+              const isExact = pred.points_awarded === 5
+              const isCorrect = pred.points_awarded > 0 && pred.points_awarded < 5
+
+              return (
+                <div key={pred.id} className="card" style={{ padding: '16px 20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <span className="badge badge-muted" style={{ fontSize: '0.65rem' }}>
+                      {pred.match?.stage?.replace(/_/g, ' ')}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--color-text-subtle)' }}>
+                      {formatKickoffTime(pred.match?.kickoff_time)}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600, textAlign: 'right' }}>{pred.match?.home_team?.name}</span>
+                    <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.03)', padding: '4px 12px', borderRadius: 8 }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>Your pick</div>
+                      <div style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: 2 }}>{pred.predicted_home}-{pred.predicted_away}</div>
+                    </div>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600, textAlign: 'left' }}>{pred.match?.away_team?.name}</span>
+                  </div>
+
+                  {hasResult ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}>
+                        {isExact ? <CheckCircle size={14} color="#10b981" /> : isCorrect ? <CheckCircle size={14} color="#f59e0b" /> : <XCircle size={14} color="#ef4444" />}
+                        <span style={{ color: isExact ? '#10b981' : isCorrect ? '#f59e0b' : '#ef4444' }}>
+                          {isExact ? 'Exact Score!' : isCorrect ? 'Correct Result' : 'Wrong Prediction'}
+                        </span>
+                      </div>
+                      <div style={{ fontWeight: 700, color: pred.points_awarded > 0 ? 'var(--color-gold)' : 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                        +{pred.points_awarded} pts
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', paddingTop: 12, borderTop: '1px solid var(--color-border)', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                      Waiting for match to finish...
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>)
 }
