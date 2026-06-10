@@ -28,7 +28,7 @@ export async function getCountryLeaderboard(country: string) {
       *,
       profile:profiles!inner(id, username, display_name, country, avatar_url)
     `)
-    .eq('profiles.country', country)
+    .eq('profile.country', country)
     .order('total_points', { ascending: false })
     .limit(50)
 

@@ -120,7 +120,7 @@ export async function adminGetUsers(page = 0, search = '') {
       .range(page * 50, (page + 1) * 50 - 1)
 
     if (search) {
-      query = query.or(`username.ilike.%${search}%,display_name.ilike.%${search}%,email.ilike.%${search}%`)
+      query = query.or(`username.ilike.%${search}%,display_name.ilike.%${search}%`)
     }
 
     const { data, error, count } = await query

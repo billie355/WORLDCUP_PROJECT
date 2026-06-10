@@ -97,30 +97,56 @@ export async function resetPassword(formData: FormData) {
   return { success: true }
 }
 
-export async function updateProfile(formData: FormData) {
+export async function updateProfile(
+  formData: FormData,
+  options?: { avatarOnly?: boolean }
+) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return { error: 'Not authenticated' }
 
-  const displayName = formData.get('display_name') as string
-  const country = formData.get('country') as string
-  const username = formData.get('username') as string
+  const admin = await createAdminClient()
 
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      display_name: displayName,
-      country,
-      username,
-    })
-    .eq('id', user.id)
-
-  if (error) {
-    return { error: error.message }
+  if (options?.avatarOnly) {
+    // Just update the avatar URL
+    const avatarUrl = formData.get('avatar_url') as string
+    const { error } = await admin
+      .from('profiles')
+      .upsert({ id: user.id, username: user.id, avatar_url: avatarUrl }, { onConflict: 'id' })
+    if (error) return { error: error.message }
+    revalidatePath('/', 'layout')
+    return { success: true }
   }
 
-  revalidatePath('/profile')
+  const displayName = formData.get('display_name') as string
+  const country = (formData.get('country') as string) || null
+  const username = (formData.get('username') as string) ||
+    `${user.email?.split('@')[0]}_${user.id.slice(0, 6)}`
+
+  // Use admin client so we can upsert — handles both:
+  // 1. Users who registered BEFORE migrations ran (no profile row yet)
+  // 2. Normal users updating their existing profile
+  const { error: profileError } = await admin
+    .from('profiles')
+    .upsert(
+      {
+        id: user.id,
+        username,
+        display_name: displayName,
+        country,
+      },
+      { onConflict: 'id' }
+    )
+
+  if (profileError) return { error: profileError.message }
+
+  // Ensure leaderboard row exists too (same issue for pre-migration users)
+  await admin
+    .from('leaderboard')
+    .upsert({ user_id: user.id }, { onConflict: 'user_id' })
+
+  revalidatePath('/', 'layout')
   return { success: true }
 }
 

@@ -4,6 +4,7 @@ import { formatKickoffTime, formatCountdown, getAccuracyPercentage, isMatchLocke
 import { Target, Trophy, TrendingUp, Clock, CheckCircle, XCircle, Minus } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import FlagImage from '@/components/ui/FlagImage'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
@@ -108,7 +109,7 @@ export default async function DashboardPage() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           {match.home_team?.flag_url && (
-                            <img src={match.home_team.flag_url} alt="" style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 3 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                            <FlagImage src={match.home_team.flag_url} />
                           )}
                           <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{match.home_team?.name}</span>
                         </div>
@@ -116,7 +117,7 @@ export default async function DashboardPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
                           <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{match.away_team?.name}</span>
                           {match.away_team?.flag_url && (
-                            <img src={match.away_team.flag_url} alt="" style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 3 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                            <FlagImage src={match.away_team.flag_url} />
                           )}
                         </div>
                       </div>

@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   description:
     'Predict FIFA World Cup 2026 match results, compete on global leaderboards, and share your predictions with friends. The ultimate fan prediction platform.',
   keywords: ['FIFA World Cup 2026', 'prediction', 'football', 'soccer', 'leaderboard', 'fantasy'],
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>', type: 'image/svg+xml' },
+    ],
+    apple: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>',
+  },
   openGraph: {
     title: 'PredictCup 2026 — FIFA World Cup Prediction Platform',
     description: 'Predict match results, compete on leaderboards, and share your World Cup predictions.',
