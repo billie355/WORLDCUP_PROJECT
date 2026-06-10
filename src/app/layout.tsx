@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'react-hot-toast'
-import { Analytics } from '@vercel/analytics/react'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import './globals.css'
 
 export const viewport: Viewport = {
@@ -72,7 +72,8 @@ export default function RootLayout({
             },
           }}
         />
-        <Analytics />
+        {/* Replace G-XXXXXXXXXX with your actual Google Analytics Measurement ID */}
+        <GoogleAnalytics gaId="G-XXXXXXXXXX" />
       </body>
     </html>
   )
