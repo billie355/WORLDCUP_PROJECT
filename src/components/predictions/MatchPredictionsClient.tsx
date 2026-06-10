@@ -216,7 +216,7 @@ export default function MatchPredictionsClient({ matches, userPredictions }: Mat
               <div style={{
                 border: '1px solid var(--color-border)', borderTop: 'none',
                 borderRadius: '0 0 14px 14px', padding: 16,
-                display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 16,
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 380px), 1fr))', gap: 16,
               }}>
                 {stageMatches.map((match) => (
                   <MatchCard

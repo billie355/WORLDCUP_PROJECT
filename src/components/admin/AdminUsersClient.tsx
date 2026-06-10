@@ -58,7 +58,9 @@ export default function AdminUsersClient({ users: initialUsers }: AdminUsersClie
 
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{
+        <div className="table-responsive-wrapper">
+          <div style={{ minWidth: 700 }}>
+            <div style={{
           display: 'grid', gridTemplateColumns: '1fr 120px 80px 120px 160px',
           gap: 16, padding: '12px 24px',
           borderBottom: '1px solid var(--color-border)',
@@ -128,6 +130,8 @@ export default function AdminUsersClient({ users: initialUsers }: AdminUsersClie
             </div>
           </div>
         ))}
+          </div>
+        </div>
       </div>
     </div>
   )

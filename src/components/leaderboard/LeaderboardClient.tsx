@@ -67,7 +67,7 @@ export default function LeaderboardClient({ initialData, initialCount, currentUs
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="table-responsive-wrapper" style={{ padding: '0 0' }}>
-          <div style={{ minWidth: 400 }}>
+          <div style={{ minWidth: '100%' }}>
             {/* Header */}
             <div className="lb-row" style={{
               padding: '12px 24px',

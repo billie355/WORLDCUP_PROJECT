@@ -98,8 +98,10 @@ export default function AdminMatchesClient({ matches: initialMatches, teams }: A
 
       {/* Matches table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr 180px 120px 140px 100px',
+        <div className="table-responsive-wrapper">
+          <div style={{ minWidth: 800 }}>
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr 180px 120px 140px 100px',
           gap: 16, padding: '12px 24px',
           borderBottom: '1px solid var(--color-border)',
           fontSize: '0.72rem', color: 'var(--color-text-muted)',
@@ -170,6 +172,8 @@ export default function AdminMatchesClient({ matches: initialMatches, teams }: A
             No matches yet. Add the first one above.
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   )
