@@ -64,7 +64,7 @@ export default function LandingNav() {
         </Link>
 
         {/* Desktop nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} className="hidden md:flex">
+        <div className="hidden md:flex items-center" style={{ gap: 8 }}>
           <Link href="/stats" className="nav-link">Stats</Link>
           <Link href="/leaderboard" className="nav-link">Leaderboard</Link>
           <Link href="/login" className="btn btn-secondary btn-sm" style={{ marginLeft: 8 }}>
@@ -77,8 +77,8 @@ export default function LandingNav() {
 
         {/* Mobile hamburger */}
         <button
-          className="btn btn-ghost"
-          style={{ display: 'none', padding: '8px' }}
+          className="md:hidden btn btn-ghost"
+          style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
