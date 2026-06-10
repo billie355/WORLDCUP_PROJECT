@@ -23,11 +23,11 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     .single()
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <AppSidebar profile={profile} leaderboard={leaderboard} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh' }}>
         <AppHeader profile={profile} leaderboard={leaderboard} />
-        <main className="main-app-content" style={{ flex: 1, padding: '32px 32px', overflowX: 'hidden' }}>
+        <main className="main-app-content" style={{ flex: 1, padding: '32px 32px', overflowX: 'hidden', overflowY: 'auto' }}>
           {children}
         </main>
       </div>
