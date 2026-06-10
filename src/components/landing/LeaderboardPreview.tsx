@@ -29,10 +29,8 @@ export default function LeaderboardPreview({ entries }: LeaderboardPreviewProps)
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           {/* Header */}
           <div
+            className="lb-row"
             style={{
-              display: 'grid',
-              gridTemplateColumns: '60px 1fr auto',
-              gap: 16,
               padding: '14px 24px',
               borderBottom: '1px solid var(--color-border)',
               fontSize: '0.75rem',
@@ -55,11 +53,9 @@ export default function LeaderboardPreview({ entries }: LeaderboardPreviewProps)
             entries.map((entry, i) => (
               <div
                 key={entry.user_id}
+                className="lb-row"
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '60px 1fr auto',
                   alignItems: 'center',
-                  gap: 16,
                   padding: '16px 24px',
                   borderBottom: i < entries.length - 1 ? '1px solid var(--color-border)' : 'none',
                   transition: 'background 0.15s',

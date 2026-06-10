@@ -66,18 +66,19 @@ export default function LeaderboardClient({ initialData, initialCount, currentUs
 
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        {/* Header */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '70px 1fr 120px',
-          gap: 16, padding: '12px 24px',
-          borderBottom: '1px solid var(--color-border)',
-          fontSize: '0.72rem', color: 'var(--color-text-muted)',
-          textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600,
-        }}>
-          <span>Rank</span>
-          <span>Player</span>
-          <span style={{ textAlign: 'right' }}>Points</span>
-        </div>
+        <div className="table-responsive-wrapper" style={{ padding: '0 0' }}>
+          <div style={{ minWidth: 400 }}>
+            {/* Header */}
+            <div className="lb-row" style={{
+              padding: '12px 24px',
+              borderBottom: '1px solid var(--color-border)',
+              fontSize: '0.72rem', color: 'var(--color-text-muted)',
+              textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600,
+            }}>
+              <span>Rank</span>
+              <span>Player</span>
+              <span style={{ textAlign: 'right' }}>Points</span>
+            </div>
 
         {isPending ? (
           <div style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
@@ -96,9 +97,9 @@ export default function LeaderboardClient({ initialData, initialCount, currentUs
             return (
               <div
                 key={entry.user_id}
+                className="lb-row"
                 style={{
-                  display: 'grid', gridTemplateColumns: '70px 1fr 120px',
-                  alignItems: 'center', gap: 16,
+                  alignItems: 'center',
                   padding: '14px 24px',
                   borderBottom: '1px solid var(--color-border)',
                   background: isCurrentUser ? 'rgba(245,158,11,0.05)' : 'transparent',
@@ -151,6 +152,8 @@ export default function LeaderboardClient({ initialData, initialCount, currentUs
             )
           })
         )}
+          </div>
+        </div>
       </div>
 
       {/* Pagination */}

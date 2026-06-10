@@ -162,7 +162,7 @@ export default function HeroSection() {
 
         {/* CTA Buttons */}
         <div
-          className="animate-slide-up delay-200"
+          className="animate-slide-up delay-200 flex-responsive"
           style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 64 }}
         >
           <Link href="/register" className="btn btn-primary btn-lg" style={{ minWidth: 200 }}>
@@ -176,7 +176,7 @@ export default function HeroSection() {
 
         {/* Social proof */}
         <div
-          className="animate-slide-up delay-300"
+          className="animate-slide-up delay-300 flex-responsive"
           style={{
             display: 'flex',
             alignItems: 'center',

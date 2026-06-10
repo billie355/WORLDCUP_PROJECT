@@ -115,7 +115,7 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
   }
 
   return (
-    <div style={{ maxWidth: 900, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 32, alignItems: 'start' }}>
+    <div style={{ maxWidth: 900, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: 32, alignItems: 'start' }}>
       {/* Hidden file input for avatar */}
       <input
         ref={fileInputRef}
