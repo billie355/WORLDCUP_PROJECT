@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AppSidebar from '@/components/layout/AppSidebar'
 import AppHeader from '@/components/layout/AppHeader'
+import MobileNav from '@/components/layout/MobileNav'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -26,10 +27,11 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       <AppSidebar profile={profile} leaderboard={leaderboard} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <AppHeader profile={profile} leaderboard={leaderboard} />
-        <main style={{ flex: 1, padding: '32px 32px', overflowX: 'hidden' }}>
+        <main className="main-app-content" style={{ flex: 1, padding: '32px 32px', overflowX: 'hidden' }}>
           {children}
         </main>
       </div>
+      <MobileNav profile={profile} />
     </div>
   )
 }

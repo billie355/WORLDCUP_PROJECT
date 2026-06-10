@@ -29,6 +29,7 @@ export default function AppSidebar({ profile, leaderboard }: AppSidebarProps) {
 
   return (
     <aside
+      className="desktop-only"
       style={{
         width: 260,
         background: 'rgba(13, 21, 38, 0.95)',

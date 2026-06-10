@@ -26,14 +26,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         borderBottom: '1px solid var(--color-border)',
         background: 'rgba(13,21,38,0.95)',
         backdropFilter: 'blur(20px)',
-        padding: '0 32px',
+        padding: '0 16px',
         display: 'flex',
         alignItems: 'center',
         gap: 8,
-        height: 60,
+        minHeight: 60,
         position: 'sticky',
         top: 0,
         zIndex: 40,
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
       }}>
         <div style={{
           background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
@@ -43,14 +45,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           ADMIN
         </div>
         {adminNav.map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href} className="nav-link" style={{ fontSize: '0.875rem' }}>
+          <Link key={href} href={href} className="nav-link" style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
             <Icon size={16} /> {label}
           </Link>
         ))}
         <div style={{ flex: 1 }} />
-        <Link href="/dashboard" className="btn btn-ghost btn-sm">← Back to App</Link>
+        <Link href="/dashboard" className="btn btn-ghost btn-sm" style={{ whiteSpace: 'nowrap' }}>← Back to App</Link>
       </div>
-      <main style={{ padding: '32px', maxWidth: 1400, margin: '0 auto' }}>
+      <main className="container-app" style={{ padding: '24px 16px', maxWidth: 1400, margin: '0 auto' }}>
         {children}
       </main>
     </div>
