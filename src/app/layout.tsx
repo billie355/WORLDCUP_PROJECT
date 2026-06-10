@@ -72,8 +72,8 @@ export default function RootLayout({
             },
           }}
         />
-        {/* Replace G-XXXXXXXXXX with your actual Google Analytics Measurement ID */}
-        <GoogleAnalytics gaId="G-XXXXXXXXXX" />
+        {/* Google Analytics */}
+        <GoogleAnalytics gaId="G-KK4CYNC9MS" />
       </body>
     </html>
   )
