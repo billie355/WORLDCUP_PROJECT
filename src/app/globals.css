@@ -793,3 +793,10 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+
+/* Select Option Styling */
+select option {
+  background-color: #0a0e1a;
+  color: #f8fafc;
+}
+
