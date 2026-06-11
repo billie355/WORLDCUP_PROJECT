@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 interface AvatarModalProps {
@@ -10,6 +11,11 @@ interface AvatarModalProps {
 
 export default function AvatarModal({ avatarUrl, initials }: AvatarModalProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // We only allow opening the modal if there is an actual avatar image
   const handleClick = () => {
@@ -17,6 +23,40 @@ export default function AvatarModal({ avatarUrl, initials }: AvatarModalProps) {
       setIsOpen(true)
     }
   }
+
+  const modalContent = isOpen && avatarUrl ? (
+    <div 
+      style={{
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 99999,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 20, cursor: 'zoom-out'
+      }}
+      onClick={() => setIsOpen(false)}
+    >
+      <div 
+        style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button 
+          onClick={() => setIsOpen(false)}
+          className="btn btn-ghost btn-icon"
+          style={{ position: 'absolute', top: -50, right: -10, color: '#fff', background: 'rgba(255,255,255,0.1)' }}
+        >
+          <X size={24} />
+        </button>
+        <img 
+          src={avatarUrl} 
+          alt="Profile avatar" 
+          style={{ 
+            maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', 
+            borderRadius: 16,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+          }} 
+        />
+      </div>
+    </div>
+  ) : null
 
   return (
     <>
@@ -43,39 +83,7 @@ export default function AvatarModal({ avatarUrl, initials }: AvatarModalProps) {
         }
       </div>
 
-      {isOpen && avatarUrl && (
-        <div 
-          style={{
-            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-            backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 20, cursor: 'zoom-out'
-          }}
-          onClick={() => setIsOpen(false)}
-        >
-          <div 
-            style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="btn btn-ghost btn-icon"
-              style={{ position: 'absolute', top: -50, right: -10, color: '#fff', background: 'rgba(255,255,255,0.1)' }}
-            >
-              <X size={24} />
-            </button>
-            <img 
-              src={avatarUrl} 
-              alt="Profile avatar" 
-              style={{ 
-                width: '100%', height: '100%', objectFit: 'contain', 
-                maxWidth: 500, maxHeight: 500, borderRadius: 16,
-                boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
-              }} 
-            />
-          </div>
-        </div>
-      )}
+      {mounted && modalContent && createPortal(modalContent, document.body)}
     </>
   )
 }
