@@ -49,9 +49,14 @@ export default function AvatarModal({ avatarUrl, initials }: AvatarModalProps) {
           src={avatarUrl} 
           alt="Profile avatar" 
           style={{ 
-            maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', 
-            borderRadius: 16,
-            boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+            width: '90vw',
+            maxWidth: 400,
+            aspectRatio: '1 / 1',
+            objectFit: 'cover', 
+            borderRadius: '50%',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+            border: '4px solid var(--color-border)',
+            background: 'var(--color-background)'
           }} 
         />
       </div>
