@@ -385,12 +385,14 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text);
   outline: none;
   transition: all var(--transition-base);
-  -moz-appearance: textfield;
+  appearance: textfield; /* Standard */
+  -moz-appearance: textfield; /* Firefox */
 }
 
 .score-input::-webkit-outer-spin-button,
 .score-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+  appearance: none; /* Standard */
+  -webkit-appearance: none; /* Chrome/Safari */
   margin: 0;
 }
 
