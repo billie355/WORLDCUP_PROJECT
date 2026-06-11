@@ -13,12 +13,13 @@ import { createClient } from '@/lib/supabase/client'
 import { formatKickoffTime } from '@/lib/utils'
 
 interface ProfileClientProps {
-  profile: Profile | null
-  leaderboard: Leaderboard | null
+  profile: Profile
+  leaderboard: Leaderboard
   predictions: any[]
+  badges?: any[]
 }
 
-export default function ProfileClient({ profile, leaderboard, predictions }: ProfileClientProps) {
+export default function ProfileClient({ profile, leaderboard, predictions, badges = [] }: ProfileClientProps) {
   const [isPending, startTransition] = useTransition()
   const [isSharing, setIsSharing] = useTransition()
   const [isChangingPassword, startPasswordTransition] = useTransition()
@@ -437,9 +438,55 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
         </div>
       </div>
 
+      {/* Badges / Achievements Section */}
+      <div style={{ marginBottom: 40, maxWidth: 900 }}>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: 16 }}>🏆 My Achievements</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 16 }}>
+          {[
+            { type: 'FIRST_BLOOD', name: 'First Pick', icon: '🩸', desc: 'Made your first prediction' },
+            { type: 'SNIPER', name: 'Sniper', icon: '🎯', desc: 'Predicted exact scoreline' },
+            { type: 'UNDERDOG_KING', name: 'Underdog', icon: '👑', desc: 'Predicted an underdog win' },
+            { type: 'ON_FIRE', name: 'On Fire', icon: '🔥', desc: '3 correct predictions in a row' }
+          ].map((badgeDef) => {
+            const hasBadge = badges.some(b => b.badge_type === badgeDef.type)
+            const count = badges.filter(b => b.badge_type === badgeDef.type).length
+
+            return (
+              <div 
+                key={badgeDef.type} 
+                className="card" 
+                style={{ 
+                  padding: '16px', 
+                  textAlign: 'center', 
+                  opacity: hasBadge ? 1 : 0.4,
+                  filter: hasBadge ? 'none' : 'grayscale(100%)',
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  gap: 8,
+                  position: 'relative'
+                }}
+              >
+                {hasBadge && count > 1 && (
+                  <div style={{ position: 'absolute', top: -8, right: -8, background: 'var(--color-gold)', color: '#000', fontSize: '0.75rem', fontWeight: 800, padding: '2px 8px', borderRadius: 12 }}>
+                    x{count}
+                  </div>
+                )}
+                <div style={{ fontSize: '2.5rem', marginBottom: 4 }}>{badgeDef.icon}</div>
+                <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{badgeDef.name}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', lineHeight: 1.3 }}>{badgeDef.desc}</div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Predictions History */}
       <div style={{ maxWidth: 900 }}>
         <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: 16 }}>📜 My Recent Predictions</h3>
+
+
+
         {predictions.length === 0 ? (
           <div className="card" style={{ padding: '32px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
             No predictions made yet.

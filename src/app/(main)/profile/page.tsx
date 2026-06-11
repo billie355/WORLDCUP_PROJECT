@@ -8,7 +8,7 @@ export default async function ProfilePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: profile }, { data: leaderboard }, { data: predictions }] = await Promise.all([
+  const [{ data: profile }, { data: leaderboard }, { data: predictions }, { data: badges }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user!.id).single(),
     supabase.from('leaderboard').select('*').eq('user_id', user!.id).single(),
     supabase.from('predictions')
@@ -16,6 +16,9 @@ export default async function ProfilePage() {
       .eq('user_id', user!.id)
       .order('created_at', { ascending: false })
       .limit(20),
+    supabase.from('user_badges')
+      .select('*')
+      .eq('user_id', user!.id)
   ])
 
   return (
@@ -25,7 +28,7 @@ export default async function ProfilePage() {
           👤 My Profile
         </h1>
       </div>
-      <ProfileClient profile={profile} leaderboard={leaderboard} predictions={predictions || []} />
+      <ProfileClient profile={profile} leaderboard={leaderboard} predictions={predictions || []} badges={badges || []} />
     </div>
   )
 }

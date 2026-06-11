@@ -78,6 +78,10 @@ export async function adminUpdateMatch(matchId: string, formData: FormData) {
         p_home_score: parseInt(homeScore as string),
         p_away_score: parseInt(awayScore as string),
       })
+      
+      // Evaluate badges after scoring
+      const { evaluateBadges } = await import('./badges')
+      await evaluateBadges(matchId)
     }
 
     revalidatePath('/admin/matches')
