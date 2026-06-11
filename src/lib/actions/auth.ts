@@ -162,3 +162,29 @@ export async function checkUsernameAvailability(username: string) {
 
   return { available: !data }
 }
+
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient()
+  const newPassword = formData.get('password') as string
+  const confirmPassword = formData.get('confirm_password') as string
+
+  if (newPassword !== confirmPassword) {
+    return { error: 'Passwords do not match' }
+  }
+
+  if (newPassword.length < 6) {
+    return { error: 'Password must be at least 6 characters' }
+  }
+
+  // Updates the password for the currently authenticated user
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
+

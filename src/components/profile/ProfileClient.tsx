@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { updateProfile, signOut } from '@/lib/actions/auth'
+import { updateProfile, updatePassword, signOut } from '@/lib/actions/auth'
 import { generateShareCard } from '@/lib/actions/share'
 import { getInitials, getAccuracyPercentage } from '@/lib/utils'
 import { User, Globe, Save, Share2, Camera, Trophy, Target, TrendingUp, Loader2, LogOut, CheckCircle, XCircle } from 'lucide-react'
@@ -20,6 +20,7 @@ interface ProfileClientProps {
 export default function ProfileClient({ profile, leaderboard, predictions }: ProfileClientProps) {
   const [isPending, startTransition] = useTransition()
   const [isSharing, setIsSharing] = useTransition()
+  const [isChangingPassword, startPasswordTransition] = useTransition()
   const [editMode, setEditMode] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState(profile?.display_name || '')
@@ -94,6 +95,21 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
         setCountry(newCountry)
         toast.success('Profile updated!')
         setEditMode(false)
+      }
+    })
+  }
+
+  async function handlePasswordUpdate(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    
+    startPasswordTransition(async () => {
+      const result = await updatePassword(formData)
+      if (result?.error) toast.error(result.error)
+      else {
+        toast.success('Password updated successfully!')
+        form.reset()
       }
     })
   }
@@ -275,8 +291,25 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
           )}
         </form>
 
-          <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--color-border)' }}>
-            <button
+        <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--color-border)' }}>
+          <h3 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Change Password</h3>
+          <form onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 8, color: 'var(--color-text-muted)' }}>New Password</label>
+              <input type="password" name="password" required minLength={6} placeholder="Min. 6 characters" className="input-base" />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: 8, color: 'var(--color-text-muted)' }}>Confirm New Password</label>
+              <input type="password" name="confirm_password" required minLength={6} placeholder="Confirm password" className="input-base" />
+            </div>
+            <button type="submit" disabled={isChangingPassword} className="btn btn-secondary" style={{ alignSelf: 'flex-start' }}>
+              {isChangingPassword ? 'Updating...' : 'Update Password'}
+            </button>
+          </form>
+        </div>
+
+        <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--color-border)' }}>
+          <button
               onClick={() => startTransition(async () => { await signOut() })}
               disabled={isPending}
               className="btn btn-ghost"
