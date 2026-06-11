@@ -4,6 +4,8 @@ import type { Metadata } from 'next'
 import { getInitials, getAccuracyPercentage, formatKickoffTime } from '@/lib/utils'
 import { Trophy, Target, TrendingUp, CheckCircle, XCircle, Globe } from 'lucide-react'
 
+import AvatarModal from '@/components/profile/AvatarModal'
+
 export async function generateMetadata({ params }: { params: { identifier: string } }): Promise<Metadata> {
   const supabase = await createClient()
   const { identifier } = await params
@@ -60,17 +62,10 @@ export default async function PublicProfilePage({ params }: { params: { identifi
     <div style={{ maxWidth: 900, margin: '0 auto', paddingBottom: 60 }}>
       {/* Profile Header */}
       <div className="card glass" style={{ padding: '40px 32px', marginBottom: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        <div style={{ 
-          width: 120, height: 120, borderRadius: '50%', marginBottom: 24, 
-          background: 'rgba(255,255,255,0.05)', border: '4px solid var(--color-border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '2.5rem', fontWeight: 800, overflow: 'hidden'
-        }}>
-          {profile.avatar_url 
-            ? <img src={profile.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : getInitials(profile.display_name || profile.username)
-          }
-        </div>
+        <AvatarModal 
+          avatarUrl={profile.avatar_url} 
+          initials={getInitials(profile.display_name || profile.username)} 
+        />
         
         <h1 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: 8, letterSpacing: '-0.02em' }}>
           {profile.display_name || profile.username || 'Anonymous User'}

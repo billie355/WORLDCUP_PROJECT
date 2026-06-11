@@ -11,6 +11,7 @@ import toast from 'react-hot-toast'
 import type { Profile, Leaderboard } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import { formatKickoffTime } from '@/lib/utils'
+import AvatarModal from './AvatarModal'
 
 interface ProfileClientProps {
   profile: Profile
