@@ -86,6 +86,9 @@ body::before {
   background-size: 60px 60px;
   pointer-events: none;
   z-index: 0;
+  /* Force GPU rendering to stop repainting the grid on every scroll tick */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 /* ============================================================
@@ -407,9 +410,12 @@ h1, h2, h3, h4, h5, h6 {
   padding: 24px;
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   position: relative;
   overflow: hidden;
   transition: all var(--transition-base);
+  /* Force GPU rendering for 120hz smooth scrolling over blurs */
+  transform: translateZ(0);
 }
 
 .card::before {
