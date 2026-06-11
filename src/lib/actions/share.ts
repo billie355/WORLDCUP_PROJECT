@@ -34,7 +34,7 @@ export async function generateShareCard() {
   const { data: matchPreds } = await supabase
     .from('predictions')
     .select(`
-      predicted_home, predicted_away,
+      match_id, predicted_home, predicted_away,
       match:matches(
         kickoff_time,
         home_team:teams!matches_home_team_id_fkey(name, flag_url, short_code),
@@ -44,6 +44,24 @@ export async function generateShareCard() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5)
+
+  // Get player picks for those matches
+  const matchIds = (matchPreds || []).map((p: any) => p.match_id).filter(Boolean)
+  const { data: playerPicks } = matchIds.length > 0
+    ? await supabase
+        .from('player_match_predictions')
+        .select('match_id, prediction_type, player:players(name)')
+        .eq('user_id', user.id)
+        .in('match_id', matchIds)
+    : { data: [] }
+
+  // Build player pick map: matchId -> { goal_scorer, man_of_match }
+  const playerPickMap: Record<string, { goal_scorer?: string; man_of_match?: string }> = {}
+  for (const pick of (playerPicks || []) as any[]) {
+    if (!playerPickMap[pick.match_id]) playerPickMap[pick.match_id] = {}
+    if (pick.prediction_type === 'goal_scorer') playerPickMap[pick.match_id].goal_scorer = pick.player?.name
+    if (pick.prediction_type === 'man_of_match') playerPickMap[pick.match_id].man_of_match = pick.player?.name
+  }
 
   const snapshot: ShareCardSnapshot = {
     username: profile?.username || 'fan',
@@ -61,6 +79,8 @@ export async function generateShareCard() {
       away_flag: p.match?.away_team?.flag_url,
       predicted_home: p.predicted_home,
       predicted_away: p.predicted_away,
+      goal_scorer: playerPickMap[p.match_id]?.goal_scorer ?? null,
+      man_of_match: playerPickMap[p.match_id]?.man_of_match ?? null,
     })),
     total_points: lb?.total_points || 0,
     rank: lb?.rank || null,

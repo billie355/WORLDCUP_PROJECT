@@ -18,6 +18,7 @@ interface ShareCardViewProps {
         home_team: string; away_team: string
         home_flag: string | null; away_flag: string | null
         predicted_home: number; predicted_away: number
+        goal_scorer?: string | null; man_of_match?: string | null
       }[]
       total_points: number
       rank: number | null
@@ -130,18 +131,31 @@ export default function ShareCardView({ shareCard }: ShareCardViewProps) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {snap.match_predictions.slice(0, 4).map((pred, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {pred.home_flag && <img src={pred.home_flag} alt="" style={{ width: 20, height: 13, objectFit: 'cover', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />}
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f1f5f9' }}>{pred.home_team}</span>
+                <div key={i} style={{ borderRadius: 10, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12, padding: '10px 12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {pred.home_flag && <img src={pred.home_flag} alt="" style={{ width: 20, height: 13, objectFit: 'cover', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />}
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f1f5f9' }}>{pred.home_team}</span>
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#f59e0b', textAlign: 'center', minWidth: 50 }}>
+                      {pred.predicted_home} - {pred.predicted_away}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f1f5f9' }}>{pred.away_team}</span>
+                      {pred.away_flag && <img src={pred.away_flag} alt="" style={{ width: 20, height: 13, objectFit: 'cover', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />}
+                    </div>
                   </div>
-                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#f59e0b', textAlign: 'center', minWidth: 50 }}>
-                    {pred.predicted_home} - {pred.predicted_away}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f1f5f9' }}>{pred.away_team}</span>
-                    {pred.away_flag && <img src={pred.away_flag} alt="" style={{ width: 20, height: 13, objectFit: 'cover', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />}
-                  </div>
+                  {/* Player picks inline */}
+                  {(pred.goal_scorer || pred.man_of_match) && (
+                    <div style={{ display: 'flex', gap: 8, padding: '6px 12px 10px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      {pred.goal_scorer && (
+                        <span style={{ fontSize: '0.65rem', color: 'rgba(148,163,184,0.7)' }}>⚡ {pred.goal_scorer}</span>
+                      )}
+                      {pred.man_of_match && (
+                        <span style={{ fontSize: '0.65rem', color: 'rgba(148,163,184,0.7)' }}>🏅 {pred.man_of_match}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

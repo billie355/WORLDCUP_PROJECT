@@ -5,6 +5,7 @@ export type MatchStage = 'group' | 'round_of_32' | 'round_of_16' | 'quarter_fina
 export type MatchStatus = 'scheduled' | 'live' | 'finished' | 'postponed' | 'cancelled'
 export type PlayerPosition = 'GK' | 'DEF' | 'MID' | 'FWD'
 export type TournamentCategory = 'winner' | 'runner_up' | 'golden_boot' | 'best_player' | 'best_young_player' | 'best_goalkeeper'
+export type PlayerPredictionType = 'goal_scorer' | 'man_of_match'
 
 export interface Profile {
   id: string
@@ -93,6 +94,18 @@ export interface Leaderboard {
   profile?: Profile
 }
 
+export interface PlayerMatchPrediction {
+  id: string
+  user_id: string
+  match_id: string
+  prediction_type: PlayerPredictionType
+  player_id: string
+  points_awarded: number | null
+  created_at: string
+  updated_at: string
+  player?: Player
+}
+
 export interface ShareCard {
   id: string
   user_id: string
@@ -116,6 +129,8 @@ export interface ShareCardSnapshot {
     away_flag: string | null
     predicted_home: number
     predicted_away: number
+    goal_scorer?: string | null
+    man_of_match?: string | null
   }[]
   total_points: number
   rank: number | null
