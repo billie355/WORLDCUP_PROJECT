@@ -75,6 +75,11 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+button {
+  color: inherit;
+  font-family: inherit;
+}
+
 /* Background grid pattern */
 body::before {
   content: '';
