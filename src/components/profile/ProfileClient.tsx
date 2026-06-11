@@ -463,12 +463,24 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 600, textAlign: 'right' }}>{pred.match?.home_team?.name}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 600, textAlign: 'right' }}>{pred.match?.home_team?.name}</span>
+                      {pred.match?.home_team?.flag_url && (
+                        <img src={pred.match.home_team.flag_url} alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
+                      )}
+                    </div>
+                    
                     <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.03)', padding: '4px 12px', borderRadius: 8 }}>
                       <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>Your pick</div>
                       <div style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: 2 }}>{pred.predicted_home}-{pred.predicted_away}</div>
                     </div>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 600, textAlign: 'left' }}>{pred.match?.away_team?.name}</span>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {pred.match?.away_team?.flag_url && (
+                        <img src={pred.match.away_team.flag_url} alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
+                      )}
+                      <span style={{ fontSize: '0.9rem', fontWeight: 600, textAlign: 'left' }}>{pred.match?.away_team?.name}</span>
+                    </div>
                   </div>
 
                   {hasResult ? (
