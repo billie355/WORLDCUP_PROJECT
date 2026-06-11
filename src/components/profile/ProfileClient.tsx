@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import { updateProfile, updatePassword, signOut } from '@/lib/actions/auth'
 import { generateShareCard } from '@/lib/actions/share'
 import { getInitials, getAccuracyPercentage } from '@/lib/utils'
@@ -38,18 +38,15 @@ export default function ProfileClient({ profile, leaderboard, predictions, badge
   const fileInputRef = useRef<HTMLInputElement>(null)
   const accuracy = getAccuracyPercentage(leaderboard?.predictions_correct || 0, leaderboard?.predictions_total || 0)
 
-  // Check if push notifications are supported and subscribed
-  import('react').then((React) => {
-    React.useEffect(() => {
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        navigator.serviceWorker.ready.then((reg) => {
-          reg.pushManager.getSubscription().then((sub) => {
-            if (sub) setIsSubscribed(true)
-          })
+  useEffect(() => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.pushManager.getSubscription().then((sub) => {
+          if (sub) setIsSubscribed(true)
         })
-      }
-    }, [])
-  })
+      })
+    }
+  }, [])
 
   // Utility to convert Base64 URL to Uint8Array
   const urlBase64ToUint8Array = (base64String: string) => {
