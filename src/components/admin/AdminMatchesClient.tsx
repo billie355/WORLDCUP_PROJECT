@@ -151,7 +151,7 @@ export default function AdminMatchesClient({ matches: initialMatches, teams }: A
               }}>
                 <span style={{ fontWeight: 600 }}>{match.home_team?.name}</span>
                 <span style={{ fontWeight: 600 }}>{match.away_team?.name}</span>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{formatKickoffTime(match.kickoff_time)}</span>
+                <span suppressHydrationWarning style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{formatKickoffTime(match.kickoff_time)}</span>
                 <span className="badge badge-muted" style={{ fontSize: '0.7rem', width: 'fit-content' }}>{getStageLabel(match.stage)}</span>
                 <span style={{ fontWeight: 700, color: match.home_score !== null ? 'var(--color-gold)' : 'var(--color-text-subtle)' }}>
                   {match.home_score !== null ? `${match.home_score} - ${match.away_score}` : '— vs —'}

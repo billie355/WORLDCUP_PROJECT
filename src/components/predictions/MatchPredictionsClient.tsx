@@ -135,7 +135,7 @@ function MatchCard({
                 aria-label={`${(match.away_team as any)?.name} predicted score`}
               />
             </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-subtle)', textAlign: 'center' }}>
+            <div suppressHydrationWarning style={{ fontSize: '0.7rem', color: 'var(--color-text-subtle)', textAlign: 'center' }}>
               {formatKickoffTime(match.kickoff_time)}
             </div>
           </div>

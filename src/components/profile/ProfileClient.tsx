@@ -501,7 +501,7 @@ export default function ProfileClient({ profile, leaderboard, predictions, badge
                     <span className="badge badge-muted" style={{ fontSize: '0.65rem' }}>
                       {pred.match?.stage?.replace(/_/g, ' ')}
                     </span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--color-text-subtle)' }}>
+                    <span suppressHydrationWarning style={{ fontSize: '0.7rem', color: 'var(--color-text-subtle)' }}>
                       {formatKickoffTime(pred.match?.kickoff_time)}
                     </span>
                   </div>
