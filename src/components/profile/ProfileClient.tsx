@@ -4,7 +4,8 @@ import { useState, useTransition, useRef } from 'react'
 import { updateProfile, updatePassword, signOut } from '@/lib/actions/auth'
 import { generateShareCard } from '@/lib/actions/share'
 import { getInitials, getAccuracyPercentage } from '@/lib/utils'
-import { User, Globe, Save, Share2, Camera, Trophy, Target, TrendingUp, Loader2, LogOut, CheckCircle, XCircle } from 'lucide-react'
+import { User, Globe, Save, Share2, Camera, Trophy, Target, TrendingUp, Loader2, LogOut, CheckCircle, XCircle, Bell } from 'lucide-react'
+import { saveSubscription, sendTestNotification } from '@/lib/actions/notifications'
 import { COUNTRIES } from '@/lib/constants'
 import toast from 'react-hot-toast'
 import type { Profile, Leaderboard } from '@/types'
@@ -28,8 +29,96 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
   const [country, setCountry] = useState(profile?.country || '')
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '')
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  
+  // Push Notifications State
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isSubscribing, setIsSubscribing] = useState(false)
+  
   const fileInputRef = useRef<HTMLInputElement>(null)
   const accuracy = getAccuracyPercentage(leaderboard?.predictions_correct || 0, leaderboard?.predictions_total || 0)
+
+  // Check if push notifications are supported and subscribed
+  import('react').then((React) => {
+    React.useEffect(() => {
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        navigator.serviceWorker.ready.then((reg) => {
+          reg.pushManager.getSubscription().then((sub) => {
+            if (sub) setIsSubscribed(true)
+          })
+        })
+      }
+    }, [])
+  })
+
+  // Utility to convert Base64 URL to Uint8Array
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4)
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/')
+    const rawData = window.atob(base64)
+    const outputArray = new Uint8Array(rawData.length)
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i)
+    }
+    return outputArray
+  }
+
+  async function handleToggleNotifications() {
+    if (!('serviceWorker' in navigator && 'PushManager' in window)) {
+      toast.error('Push notifications are not supported in your browser.')
+      return
+    }
+
+    setIsSubscribing(true)
+    try {
+      const registration = await navigator.serviceWorker.ready
+      
+      if (isSubscribed) {
+        // Unsubscribe locally (removing from DB requires another action, keeping simple for now)
+        toast('To stop notifications completely, revoke permission in browser settings.', { icon: 'ℹ️' })
+        setIsSubscribing(false)
+        return
+      }
+
+      // Ask for permission and subscribe
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidPublicKey) {
+        toast.error('VAPID public key missing. Check env variables.')
+        setIsSubscribing(false)
+        return
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+      })
+
+      const subJSON = subscription.toJSON()
+      const result = await saveSubscription(subJSON)
+
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        setIsSubscribed(true)
+        toast.success('Notifications enabled!')
+      }
+    } catch (err: any) {
+      console.error(err)
+      if (err.name === 'NotAllowedError') {
+        toast.error('You blocked notifications. Please enable them in browser settings.')
+      } else {
+        toast.error('Failed to subscribe: ' + err.message)
+      }
+    } finally {
+      setIsSubscribing(false)
+    }
+  }
+
+  async function handleSendTest() {
+    const toastId = toast.loading('Sending test notification...')
+    const result = await sendTestNotification()
+    if (result.error) toast.error(result.error, { id: toastId })
+    else toast.success(result.message || 'Sent!', { id: toastId })
+  }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -290,6 +379,33 @@ export default function ProfileClient({ profile, leaderboard, predictions }: Pro
             </button>
           )}
         </form>
+
+        <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <Bell size={20} color="var(--color-gold)" />
+            <h3 style={{ fontWeight: 700, fontSize: '1.1rem', margin: 0 }}>Push Notifications</h3>
+          </div>
+          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: 16 }}>
+            Get alerted when matches start or when your predictions earn points.
+          </p>
+          
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              onClick={handleToggleNotifications}
+              disabled={isSubscribing || isSubscribed}
+              className={`btn ${isSubscribed ? 'btn-ghost' : 'btn-primary'}`}
+              style={{ flex: 1 }}
+            >
+              {isSubscribing ? 'Setting up...' : isSubscribed ? '✅ Subscribed' : 'Enable Notifications'}
+            </button>
+            
+            {isSubscribed && (
+              <button onClick={handleSendTest} className="btn btn-secondary">
+                Test
+              </button>
+            )}
+          </div>
+        </div>
 
         <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--color-border)' }}>
           <h3 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Change Password</h3>
