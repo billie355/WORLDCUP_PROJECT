@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { getLeaderboard, getCountryLeaderboard } from '@/lib/actions/leaderboard'
 import { getInitials, getRankBadge } from '@/lib/utils'
 import { Crown, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -95,7 +96,8 @@ export default function LeaderboardClient({ initialData, initialCount, currentUs
             const isTop3 = globalRank <= 3
 
             return (
-              <div
+              <Link
+                href={`/user/${entry.profile?.username || entry.user_id}`}
                 key={entry.user_id}
                 className="lb-row"
                 style={{
@@ -105,6 +107,8 @@ export default function LeaderboardClient({ initialData, initialCount, currentUs
                   background: isCurrentUser ? 'rgba(245,158,11,0.05)' : 'transparent',
                   borderLeft: isCurrentUser ? '3px solid var(--color-gold)' : '3px solid transparent',
                   transition: 'background 0.15s',
+                  textDecoration: 'none',
+                  color: 'inherit'
                 }}
                 onMouseEnter={(e) => { if (!isCurrentUser) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)' }}
                 onMouseLeave={(e) => { if (!isCurrentUser) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -148,7 +152,7 @@ export default function LeaderboardClient({ initialData, initialCount, currentUs
                   </div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>points</div>
                 </div>
-              </div>
+              </Link>
             )
           })
         )}
