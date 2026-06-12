@@ -1,9 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
+  // Session client (anon key + user cookies) — used for auth only
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -53,10 +55,18 @@ export async function middleware(request: NextRequest) {
   }
 
   // -------------------------------------------------------
-  // Ban check — runs for all logged-in users except on /banned itself
+  // Ban check — uses service role key to bypass RLS
+  // Runs for all logged-in users on any path except /banned
   // -------------------------------------------------------
   if (user && pathname !== '/banned') {
-    const { data: profile } = await supabase
+    // Service role client bypasses RLS so we always get the real ban status
+    const adminSupabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    )
+
+    const { data: profile } = await adminSupabase
       .from('profiles')
       .select('is_banned, ban_expires_at')
       .eq('id', user.id)
@@ -67,9 +77,8 @@ export async function middleware(request: NextRequest) {
       const expiresAt = profile.ban_expires_at ? new Date(profile.ban_expires_at) : null
 
       if (expiresAt && expiresAt <= now) {
-        // Timed ban has expired — auto-unban using service role key if available,
-        // otherwise fall back to anon client (RLS must allow self-update or use trigger)
-        await supabase
+        // Timed ban has expired — auto-unban via service role
+        await adminSupabase
           .from('profiles')
           .update({
             is_banned: false,
