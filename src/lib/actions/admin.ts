@@ -18,12 +18,28 @@ async function requireAdmin() {
   return { supabase, user }
 }
 
+async function requireStaffOrAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin' && profile?.role !== 'staff') throw new Error('Unauthorized')
+  return { supabase, user, role: profile.role }
+}
+
 // -------------------------------------------------------
 // Match Management
 // -------------------------------------------------------
+/** Staff or Admin: create a new match (basic info only, no scoring). */
 export async function adminCreateMatch(formData: FormData) {
   try {
-    const { supabase } = await requireAdmin()
+    const { supabase } = await requireStaffOrAdmin()
 
     const { error } = await supabase
       .from('matches')
@@ -44,13 +60,25 @@ export async function adminCreateMatch(formData: FormData) {
   }
 }
 
+/** Staff or Admin: update a match's basic info (venue, kickoff time).
+ *  Score entry and marking as finished is ADMIN ONLY — the action enforces this. */
 export async function adminUpdateMatch(matchId: string, formData: FormData) {
   try {
-    const { supabase } = await requireAdmin()
+    const { supabase, role } = await requireStaffOrAdmin()
 
     const homeScore = formData.get('home_score')
     const awayScore = formData.get('away_score')
     const status = formData.get('status') as string
+
+    // Staff cannot enter scores or mark match as finished
+    if (role === 'staff') {
+      if (status === 'finished') {
+        return { error: 'Staff cannot mark a match as finished. Contact an admin.' }
+      }
+      if (homeScore !== null && homeScore !== '') {
+        return { error: 'Staff cannot enter match scores. Contact an admin.' }
+      }
+    }
 
     const updateData: any = {
       kickoff_time: formData.get('kickoff_time') as string,
@@ -70,7 +98,7 @@ export async function adminUpdateMatch(matchId: string, formData: FormData) {
 
     if (error) return { error: error.message }
 
-    // If match is finished with scores, trigger scoring
+    // If match is finished with scores, trigger scoring (admin only, guarded above)
     if (status === 'finished' && homeScore !== null && homeScore !== '') {
       const adminSupabase = await createAdminClient()
       await adminSupabase.rpc('score_match_prediction', {
@@ -78,7 +106,7 @@ export async function adminUpdateMatch(matchId: string, formData: FormData) {
         p_home_score: parseInt(homeScore as string),
         p_away_score: parseInt(awayScore as string),
       })
-      
+
       // Evaluate badges after scoring
       const { evaluateBadges } = await import('./badges')
       await evaluateBadges(matchId)
@@ -92,9 +120,10 @@ export async function adminUpdateMatch(matchId: string, formData: FormData) {
   }
 }
 
+/** Staff or Admin: list all matches. */
 export async function adminGetAllMatches() {
   try {
-    const { supabase } = await requireAdmin()
+    const { supabase } = await requireStaffOrAdmin()
     const { data, error } = await supabase
       .from('matches')
       .select(`
@@ -115,7 +144,7 @@ export async function adminGetAllMatches() {
 // -------------------------------------------------------
 export async function adminGetUsers(page = 0, search = '') {
   try {
-    const { supabase } = await requireAdmin()
+    const { supabase } = await requireStaffOrAdmin()
 
     let query = supabase
       .from('profiles')
@@ -150,8 +179,35 @@ export async function adminBanUser(userId: string, banned: boolean) {
   }
 }
 
+export async function adminChangeUserRole(userId: string, role: string) {
+  try {
+    const { supabase } = await requireAdmin()
+    
+    // Admins cannot change other admins' roles
+    const { data: targetProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+      
+    if (targetProfile?.role === 'admin') throw new Error('Cannot modify admin roles')
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role })
+      .eq('id', userId)
+
+    if (error) return { error: error.message }
+    revalidatePath('/admin/users')
+    return { success: true }
+  } catch (e: any) {
+    return { error: e.message }
+  }
+}
+
 export async function adminResetUserPredictions(userId: string) {
   try {
+    await requireStaffOrAdmin()
     const adminSupabase = await createAdminClient()
 
     await adminSupabase.from('predictions').delete().eq('user_id', userId)
@@ -192,9 +248,10 @@ export async function adminUpdatePointsConfig(configs: { key: string; value: num
 // -------------------------------------------------------
 // Team & Player Management
 // -------------------------------------------------------
+/** Staff or Admin: add a team. */
 export async function adminCreateTeam(formData: FormData) {
   try {
-    const { supabase } = await requireAdmin()
+    const { supabase } = await requireStaffOrAdmin()
     const { error } = await supabase.from('teams').insert({
       name: formData.get('name') as string,
       short_code: formData.get('short_code') as string,
@@ -210,9 +267,10 @@ export async function adminCreateTeam(formData: FormData) {
   }
 }
 
+/** Staff or Admin: add a player. */
 export async function adminCreatePlayer(formData: FormData) {
   try {
-    const { supabase } = await requireAdmin()
+    const { supabase } = await requireStaffOrAdmin()
     const { error } = await supabase.from('players').insert({
       name: formData.get('name') as string,
       team_id: formData.get('team_id') as string,

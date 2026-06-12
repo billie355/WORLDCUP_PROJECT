@@ -1,24 +1,30 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { adminUpdateMatch, adminCreateMatch, adminGetAllMatches } from '@/lib/actions/admin'
+import { adminUpdateMatch, adminCreateMatch } from '@/lib/actions/admin'
 import { formatKickoffTime, getStageLabel } from '@/lib/utils'
-import { Plus, Edit2, CheckCircle } from 'lucide-react'
+import { Plus, Edit2, Shield } from 'lucide-react'
 import toast from 'react-hot-toast'
-import type { Match, MatchStage, MatchStatus } from '@/types'
+import type { MatchStage } from '@/types'
 
 const STAGES: MatchStage[] = ['group', 'round_of_32', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final']
+const ALL_STATUSES = ['scheduled', 'live', 'finished', 'postponed', 'cancelled']
+// Staff cannot set 'finished' — that triggers scoring
+const STAFF_STATUSES = ['scheduled', 'live', 'postponed', 'cancelled']
 
 interface AdminMatchesClientProps {
   matches: any[]
   teams: any[]
+  currentUserRole: 'admin' | 'staff'
 }
 
-export default function AdminMatchesClient({ matches: initialMatches, teams }: AdminMatchesClientProps) {
+export default function AdminMatchesClient({ matches: initialMatches, teams, currentUserRole }: AdminMatchesClientProps) {
   const [matches, setMatches] = useState(initialMatches)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const isAdmin = currentUserRole === 'admin'
+  const availableStatuses = isAdmin ? ALL_STATUSES : STAFF_STATUSES
 
   async function handleUpdateMatch(matchId: string, e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -42,12 +48,24 @@ export default function AdminMatchesClient({ matches: initialMatches, teams }: A
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>⚽ Match Management</h1>
         <button onClick={() => setShowAdd(!showAdd)} className="btn btn-primary">
           <Plus size={16} /> Add Match
         </button>
       </div>
+
+      {/* Staff notice */}
+      {!isAdmin && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24,
+          padding: '8px 16px', borderRadius: 8, fontSize: '0.82rem',
+          background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.25)', color: '#eab308',
+        }}>
+          <Shield size={14} />
+          Staff mode — You can add/edit matches (venue, schedule) but cannot enter scores or mark matches as finished.
+        </div>
+      )}
 
       {/* Add match form */}
       {showAdd && (
@@ -125,17 +143,22 @@ export default function AdminMatchesClient({ matches: initialMatches, teams }: A
                   <div>
                     <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Status</label>
                     <select name="status" defaultValue={match.status} className="input-base" style={{ fontSize: '0.8rem' }}>
-                      {['scheduled', 'live', 'finished', 'postponed', 'cancelled'].map((s) => <option key={s} value={s}>{s}</option>)}
+                      {availableStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Home Score</label>
-                    <input type="number" name="home_score" defaultValue={match.home_score ?? ''} min={0} className="input-base" style={{ fontSize: '0.8rem' }} placeholder="—" />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Away Score</label>
-                    <input type="number" name="away_score" defaultValue={match.away_score ?? ''} min={0} className="input-base" style={{ fontSize: '0.8rem' }} placeholder="—" />
-                  </div>
+                  {/* Score fields — admin only */}
+                  {isAdmin && (
+                    <>
+                      <div>
+                        <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Home Score</label>
+                        <input type="number" name="home_score" defaultValue={match.home_score ?? ''} min={0} className="input-base" style={{ fontSize: '0.8rem' }} placeholder="—" />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Away Score</label>
+                        <input type="number" name="away_score" defaultValue={match.away_score ?? ''} min={0} className="input-base" style={{ fontSize: '0.8rem' }} placeholder="—" />
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button type="submit" disabled={isPending} className="btn btn-primary btn-sm">{isPending ? '...' : 'Save'}</button>

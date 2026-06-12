@@ -9,8 +9,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/dashboard')
+  // Allow both admin and staff
+  if (profile?.role !== 'admin' && profile?.role !== 'staff') redirect('/dashboard')
 
+  const isAdmin = profile?.role === 'admin'
+
+  // Nav items — all visible and clickable for both staff and admin
   const adminNav = [
     { href: '/admin', icon: BarChart3, label: 'Overview' },
     { href: '/admin/matches', icon: Swords, label: 'Matches' },
@@ -37,18 +41,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         overflowX: 'auto',
         WebkitOverflowScrolling: 'touch',
       }}>
+        {/* Role badge */}
         <div style={{
-          background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+          background: isAdmin ? 'rgba(239,68,68,0.1)' : 'rgba(234,179,8,0.1)',
+          border: `1px solid ${isAdmin ? 'rgba(239,68,68,0.3)' : 'rgba(234,179,8,0.3)'}`,
           borderRadius: 6, padding: '4px 10px', fontSize: '0.75rem', fontWeight: 700,
-          color: '#ef4444', marginRight: 16, letterSpacing: '0.08em',
+          color: isAdmin ? '#ef4444' : '#eab308', marginRight: 16, letterSpacing: '0.08em',
+          flexShrink: 0,
         }}>
-          ADMIN
+          {isAdmin ? 'ADMIN' : 'STAFF'}
         </div>
+
         {adminNav.map(({ href, icon: Icon, label }) => (
           <Link key={href} href={href} className="nav-link" style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
             <Icon size={16} /> {label}
           </Link>
         ))}
+
         <div style={{ flex: 1 }} />
         <Link href="/dashboard" className="btn btn-ghost btn-sm" style={{ whiteSpace: 'nowrap' }}>← Back to App</Link>
       </div>

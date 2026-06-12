@@ -7,10 +7,13 @@ export const metadata: Metadata = { title: 'Admin — Matches' }
 
 export default async function AdminMatchesPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user!.id).single()
+
   const [{ data: matches }, { data: teams }] = await Promise.all([
     adminGetAllMatches(),
     supabase.from('teams').select('id, name').order('name'),
   ])
 
-  return <AdminMatchesClient matches={matches || []} teams={teams || []} />
+  return <AdminMatchesClient matches={matches || []} teams={teams || []} currentUserRole={profile?.role as 'admin' | 'staff'} />
 }

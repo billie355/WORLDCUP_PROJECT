@@ -3,17 +3,19 @@
 import { useState, useTransition } from 'react'
 import { adminUpdatePointsConfig } from '@/lib/actions/admin'
 import { adminRecalculateScores } from '@/lib/actions/leaderboard'
-import { RotateCcw, Save } from 'lucide-react'
+import { RotateCcw, Save, Shield } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface AdminLeaderboardClientProps {
   pointsConfig: { key: string; value: number; description: string | null }[]
+  currentUserRole: 'admin' | 'staff'
 }
 
-export default function AdminLeaderboardClient({ pointsConfig }: AdminLeaderboardClientProps) {
+export default function AdminLeaderboardClient({ pointsConfig, currentUserRole }: AdminLeaderboardClientProps) {
   const [config, setConfig] = useState(pointsConfig)
   const [isSaving, startSaving] = useTransition()
   const [isRecalculating, startRecalculating] = useTransition()
+  const isAdmin = currentUserRole === 'admin'
 
   function handleSave() {
     startSaving(async () => {
@@ -34,7 +36,19 @@ export default function AdminLeaderboardClient({ pointsConfig }: AdminLeaderboar
 
   return (
     <div>
-      <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: 32 }}>⚙️ Leaderboard & Points</h1>
+      <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: 24 }}>⚙️ Leaderboard & Points</h1>
+
+      {/* Staff notice */}
+      {!isAdmin && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24,
+          padding: '8px 16px', borderRadius: 8, fontSize: '0.82rem',
+          background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.25)', color: '#eab308',
+        }}>
+          <Shield size={14} />
+          Staff mode — Points configuration is read-only. Contact an admin to change values.
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 32, alignItems: 'start' }}>
         {/* Points config */}
@@ -55,39 +69,44 @@ export default function AdminLeaderboardClient({ pointsConfig }: AdminLeaderboar
                   onChange={(e) => setConfig((prev) => prev.map((c, j) => j === i ? { ...c, value: parseInt(e.target.value) || 0 } : c))}
                   min={0}
                   className="input-base"
-                  style={{ width: 80, textAlign: 'center', fontWeight: 700 }}
+                  disabled={!isAdmin}
+                  style={{ width: 80, textAlign: 'center', fontWeight: 700, opacity: isAdmin ? 1 : 0.5 }}
                 />
               </div>
             ))}
           </div>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="btn btn-primary"
-            style={{ width: '100%', marginTop: 24 }}
-          >
-            <Save size={16} />
-            {isSaving ? 'Saving...' : 'Save Configuration'}
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="btn btn-primary"
+              style={{ width: '100%', marginTop: 24 }}
+            >
+              <Save size={16} />
+              {isSaving ? 'Saving...' : 'Save Configuration'}
+            </button>
+          )}
         </div>
 
-        {/* Actions */}
-        <div className="card" style={{ background: 'rgba(239,68,68,0.03)', borderColor: 'rgba(239,68,68,0.15)' }}>
-          <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: '1.1rem' }}>⚠️ Recalculate Scores</h3>
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
-            This will recalculate all match prediction scores using the current points configuration.
-            Use this after editing scores or changing the points system.
-          </p>
-          <button
-            onClick={handleRecalculate}
-            disabled={isRecalculating}
-            className="btn btn-danger"
-            style={{ width: '100%' }}
-          >
-            <RotateCcw size={16} />
-            {isRecalculating ? 'Recalculating...' : 'Recalculate All Scores'}
-          </button>
-        </div>
+        {/* Recalculate actions — admin only */}
+        {isAdmin && (
+          <div className="card" style={{ background: 'rgba(239,68,68,0.03)', borderColor: 'rgba(239,68,68,0.15)' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: '1.1rem' }}>⚠️ Recalculate Scores</h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+              This will recalculate all match prediction scores using the current points configuration.
+              Use this after editing scores or changing the points system.
+            </p>
+            <button
+              onClick={handleRecalculate}
+              disabled={isRecalculating}
+              className="btn btn-danger"
+              style={{ width: '100%' }}
+            >
+              <RotateCcw size={16} />
+              {isRecalculating ? 'Recalculating...' : 'Recalculate All Scores'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
