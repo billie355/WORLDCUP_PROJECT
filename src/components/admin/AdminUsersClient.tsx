@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef, useEffect } from 'react'
 import { adminBanUser, adminResetUserPredictions, adminChangeUserRole } from '@/lib/actions/admin'
 import { getInitials } from '@/lib/utils'
-import { Ban, RotateCcw, Search, ShieldOff, ChevronDown, Shield, UserCheck, UserX, X, Clock, Lock } from 'lucide-react'
+import { Ban, RotateCcw, Search, ShieldOff, ChevronDown, Shield, UserCheck, UserX, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface AdminUsersClientProps {
@@ -138,38 +138,39 @@ function BanModal({ user, onConfirm, onClose, isPending }: {
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-    }}
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+      }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{
-        background: 'var(--color-surface)', border: '1px solid rgba(239,68,68,0.25)',
-        borderRadius: 16, padding: 28, maxWidth: 480, width: '100%',
-        boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-        animation: 'fadeInUp 0.2s ease',
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 14, padding: 28, maxWidth: 460, width: '100%',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
       }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Ban size={18} color="#ef4444" /> Ban User
-            </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
-              @{user.username} · {user.display_name}
+            <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 4 }}>Suspend account</h2>
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+              @{user.username}{user.display_name ? ` · ${user.display_name}` : ''}
             </p>
           </div>
-          <button onClick={onClose} className="btn btn-ghost btn-sm" style={{ padding: '4px 6px' }}>
-            <X size={16} />
+          <button onClick={onClose} className="btn btn-ghost btn-sm" style={{ padding: '4px 6px', marginTop: -2 }}>
+            <X size={15} />
           </button>
         </div>
 
+        <div style={{ height: 1, background: 'var(--color-border)', marginBottom: 22 }} />
+
         <form onSubmit={handleSubmit}>
           {/* Reason */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 7 }}>
               Reason
             </label>
             <select
@@ -183,68 +184,67 @@ function BanModal({ user, onConfirm, onClose, isPending }: {
           </div>
 
           {/* Message */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Message to User <span style={{ fontWeight: 400, textTransform: 'none' }}>(shown on their ban page)</span>
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 7 }}>
+              Message to user
+              <span style={{ fontWeight: 400, color: 'var(--color-text-subtle)', marginLeft: 6 }}>— shown on their suspension page</span>
             </label>
             <textarea
               value={message}
               onChange={e => setMessage(e.target.value)}
-              placeholder="Write a message explaining the ban to the user..."
+              placeholder="Explain why this account is being suspended..."
               rows={4}
               className="input-base"
-              style={{ fontSize: '0.875rem', resize: 'vertical', minHeight: 90 }}
+              style={{ fontSize: '0.875rem', resize: 'vertical', minHeight: 88 }}
             />
           </div>
 
           {/* Duration */}
           <div style={{ marginBottom: 24 }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 10 }}>
               Duration
             </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {/* Permanent */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label style={{
                 display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
                 padding: '10px 14px', borderRadius: 8,
-                border: `1px solid ${durationType === 'permanent' ? 'rgba(239,68,68,0.4)' : 'var(--color-border)'}`,
-                background: durationType === 'permanent' ? 'rgba(239,68,68,0.06)' : 'transparent',
-                transition: 'all 0.15s',
+                border: `1px solid ${durationType === 'permanent' ? 'rgba(239,68,68,0.3)' : 'var(--color-border)'}`,
+                background: durationType === 'permanent' ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.02)',
+                transition: 'all 0.12s',
               }}>
                 <input type="radio" name="duration" value="permanent" checked={durationType === 'permanent'}
-                  onChange={() => setDurationType('permanent')} style={{ accentColor: '#ef4444' }} />
-                <Lock size={14} color="#ef4444" />
-                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ef4444' }}>Permanent</span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginLeft: 'auto' }}>Can only be lifted by admin</span>
+                  onChange={() => setDurationType('permanent')} style={{ accentColor: '#ef4444', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Permanent</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', marginTop: 1 }}>Can be lifted manually by an admin at any time</div>
+                </div>
               </label>
 
-              {/* Timed */}
               <label style={{
                 display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
                 padding: '10px 14px', borderRadius: 8,
-                border: `1px solid ${durationType === 'timed' ? 'rgba(234,179,8,0.4)' : 'var(--color-border)'}`,
-                background: durationType === 'timed' ? 'rgba(234,179,8,0.06)' : 'transparent',
-                transition: 'all 0.15s',
+                border: `1px solid ${durationType === 'timed' ? 'rgba(255,255,255,0.15)' : 'var(--color-border)'}`,
+                background: durationType === 'timed' ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+                transition: 'all 0.12s',
               }}>
                 <input type="radio" name="duration" value="timed" checked={durationType === 'timed'}
-                  onChange={() => setDurationType('timed')} style={{ accentColor: '#eab308' }} />
-                <Clock size={14} color="#eab308" />
-                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#eab308' }}>Until a specific date</span>
+                  onChange={() => setDurationType('timed')} style={{ accentColor: 'var(--color-gold)', flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Until a specific date</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', marginTop: 1 }}>Account is restored automatically when the date passes</div>
+                </div>
               </label>
 
-              {/* Datetime picker */}
               {durationType === 'timed' && (
-                <div style={{ paddingLeft: 14 }}>
-                  <input
-                    type="datetime-local"
-                    value={expiresAt}
-                    onChange={e => setExpiresAt(e.target.value)}
-                    min={minDatetime}
-                    className="input-base"
-                    style={{ fontSize: '0.875rem' }}
-                    required
-                  />
-                </div>
+                <input
+                  type="datetime-local"
+                  value={expiresAt}
+                  onChange={e => setExpiresAt(e.target.value)}
+                  min={minDatetime}
+                  className="input-base"
+                  style={{ fontSize: '0.875rem', marginTop: 2 }}
+                  required
+                />
               )}
             </div>
           </div>
@@ -255,8 +255,7 @@ function BanModal({ user, onConfirm, onClose, isPending }: {
               Cancel
             </button>
             <button type="submit" disabled={isPending} className="btn btn-danger" style={{ flex: 1 }}>
-              <Ban size={14} />
-              {isPending ? 'Banning...' : 'Confirm Ban'}
+              {isPending ? 'Suspending...' : 'Suspend account'}
             </button>
           </div>
         </form>

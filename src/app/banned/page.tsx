@@ -9,7 +9,6 @@ export default async function BannedPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Not logged in — send to login
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
@@ -18,14 +17,16 @@ export default async function BannedPage() {
     .eq('id', user.id)
     .single()
 
-  // Not actually banned — send to dashboard
   if (!profile?.is_banned) redirect('/dashboard')
 
   const expiresAt = profile.ban_expires_at ? new Date(profile.ban_expires_at) : null
-  const bannedAt = profile.banned_at ? new Date(profile.banned_at) : null
+  const bannedAt  = profile.banned_at ? new Date(profile.banned_at) : null
   const isPermanent = !expiresAt
 
   const formatDate = (d: Date) =>
+    d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+
+  const formatDateTime = (d: Date) =>
     d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 
   return (
@@ -35,85 +36,86 @@ export default async function BannedPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '24px 16px',
+      padding: '40px 16px',
       fontFamily: 'Outfit, sans-serif',
     }}>
-      <div style={{ maxWidth: 560, width: '100%' }}>
+      <div style={{ maxWidth: 520, width: '100%' }}>
 
-        {/* Icon */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 80, height: 80, borderRadius: '50%',
-            background: 'rgba(239,68,68,0.12)', border: '2px solid rgba(239,68,68,0.3)',
-            fontSize: '2.4rem', marginBottom: 24,
+        {/* Wordmark */}
+        <div style={{ marginBottom: 40, textAlign: 'center' }}>
+          <span style={{
+            fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.15em',
+            color: 'var(--color-text-subtle)', textTransform: 'uppercase',
           }}>
-            🚫
-          </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ef4444', marginBottom: 8 }}>
-            Account Suspended
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
-            Hello <strong style={{ color: 'var(--color-text)' }}>{profile.display_name || profile.username}</strong>,
-            your account has been suspended from PredictCup 2026.
-          </p>
+            PredictCup 2026
+          </span>
         </div>
 
         {/* Main card */}
         <div style={{
           background: 'var(--color-surface)',
-          border: '1px solid rgba(239,68,68,0.2)',
+          border: '1px solid var(--color-border)',
           borderRadius: 16,
           overflow: 'hidden',
-          marginBottom: 20,
+          marginBottom: 12,
         }}>
-          {/* Header bar */}
-          <div style={{
-            background: 'rgba(239,68,68,0.08)',
-            borderBottom: '1px solid rgba(239,68,68,0.15)',
-            padding: '14px 24px',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#ef4444', letterSpacing: '0.06em' }}>
-              OFFICIAL NOTICE FROM ADMIN
-            </span>
-            {bannedAt && (
-              <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                {formatDate(bannedAt)}
-              </span>
-            )}
-          </div>
+          {/* Top accent strip */}
+          <div style={{ height: 3, background: 'linear-gradient(90deg, #ef4444, #dc2626)' }} />
 
-          <div style={{ padding: 24 }}>
-            {/* Reason badge */}
+          <div style={{ padding: '32px 32px 28px' }}>
+            {/* Status line */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              padding: '4px 10px', borderRadius: 6, marginBottom: 24,
+              background: 'rgba(239,68,68,0.08)',
+              border: '1px solid rgba(239,68,68,0.18)',
+            }}>
+              <div style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: '#ef4444',
+              }} />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#ef4444', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Account Suspended
+              </span>
+            </div>
+
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 10, lineHeight: 1.3 }}>
+              Your account has been suspended
+            </h1>
+            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', lineHeight: 1.65, marginBottom: 28 }}>
+              Hi {profile.display_name || profile.username}, this account has been suspended
+              from PredictCup 2026 by a member of the administrative team.
+            </p>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: 'var(--color-border)', marginBottom: 24 }} />
+
+            {/* Reason */}
             {profile.ban_reason && (
               <div style={{ marginBottom: 20 }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-subtle)', marginBottom: 5 }}>
                   Reason
-                </span>
-                <div style={{ marginTop: 6 }}>
-                  <span style={{
-                    display: 'inline-block', padding: '4px 12px', borderRadius: 6,
-                    background: 'rgba(239,68,68,0.12)', color: '#ef4444',
-                    fontSize: '0.82rem', fontWeight: 700,
-                  }}>
-                    {profile.ban_reason}
-                  </span>
-                </div>
+                </p>
+                <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                  {profile.ban_reason}
+                </p>
               </div>
             )}
 
-            {/* Message */}
+            {/* Message from admin */}
             {profile.ban_message && (
-              <div style={{ marginBottom: 24 }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  Message
-                </span>
+              <div style={{ marginBottom: 20 }}>
+                <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-subtle)', marginBottom: 8 }}>
+                  Note from admin
+                </p>
                 <div style={{
-                  marginTop: 8, padding: '14px 16px',
-                  background: 'rgba(255,255,255,0.03)', borderRadius: 10,
-                  border: '1px solid var(--color-border)',
-                  fontSize: '0.9rem', lineHeight: 1.65, color: 'var(--color-text)',
+                  padding: '14px 16px',
+                  borderLeft: '2px solid rgba(239,68,68,0.3)',
+                  background: 'rgba(255,255,255,0.02)',
+                  borderRadius: '0 8px 8px 0',
+                  fontSize: '0.875rem',
+                  lineHeight: 1.7,
+                  color: 'var(--color-text-muted)',
                   whiteSpace: 'pre-wrap',
                 }}>
                   {profile.ban_message}
@@ -121,56 +123,60 @@ export default async function BannedPage() {
               </div>
             )}
 
-            {/* Details grid */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
-              padding: '16px', borderRadius: 10,
-              background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)',
-            }}>
-              <div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>
-                  Issued by
+            {/* Meta row */}
+            <div style={{ display: 'flex', gap: 32, marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--color-border)' }}>
+              {bannedAt && (
+                <div>
+                  <p style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', fontWeight: 500, marginBottom: 3 }}>
+                    Date issued
+                  </p>
+                  <p style={{ fontSize: '0.82rem', fontWeight: 600 }}>
+                    {formatDate(bannedAt)}
+                  </p>
                 </div>
-                <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Admin</div>
+              )}
+              <div>
+                <p style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', fontWeight: 500, marginBottom: 3 }}>
+                  Duration
+                </p>
+                <p style={{
+                  fontSize: '0.82rem', fontWeight: 600,
+                  color: isPermanent ? '#ef4444' : 'var(--color-text)',
+                }}>
+                  {isPermanent ? 'Permanent' : `Until ${formatDateTime(expiresAt!)}`}
+                </p>
               </div>
               <div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>
-                  Duration
-                </div>
-                <div style={{ fontSize: '0.875rem', fontWeight: 700, color: isPermanent ? '#ef4444' : '#f59e0b' }}>
-                  {isPermanent ? '🔒 Permanent' : `Until ${formatDate(expiresAt!)}`}
-                </div>
+                <p style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', fontWeight: 500, marginBottom: 3 }}>
+                  Issued by
+                </p>
+                <p style={{ fontSize: '0.82rem', fontWeight: 600 }}>Admin</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Info note */}
-        <div style={{
-          padding: '12px 16px', borderRadius: 10,
-          background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)',
-          fontSize: '0.82rem', color: 'var(--color-text-muted)', lineHeight: 1.6,
-          marginBottom: 24, textAlign: 'center',
+        {/* Footer note */}
+        <p style={{
+          fontSize: '0.78rem',
+          color: 'var(--color-text-subtle)',
+          lineHeight: 1.6,
+          marginBottom: 24,
+          padding: '0 4px',
         }}>
           {isPermanent
-            ? 'This ban is permanent. If you believe this is a mistake, please contact the platform administrator.'
-            : `Your access will be automatically restored on ${formatDate(expiresAt!)}.`}
-        </div>
+            ? 'If you believe this is a mistake, contact the platform administrator directly.'
+            : `Your access will be restored automatically on ${formatDateTime(expiresAt!)}.`}
+        </p>
 
         {/* Sign out */}
         <form action={signOut}>
           <button
             type="submit"
-            style={{
-              width: '100%', padding: '13px', borderRadius: 10,
-              background: 'rgba(255,255,255,0.06)', border: '1px solid var(--color-border)',
-              color: 'var(--color-text)', fontSize: '0.9rem', fontWeight: 600,
-              cursor: 'pointer', transition: 'background 0.2s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+            className="btn btn-secondary"
+            style={{ width: '100%' }}
           >
-            Sign Out
+            Sign out
           </button>
         </form>
       </div>
