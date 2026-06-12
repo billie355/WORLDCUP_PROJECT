@@ -37,7 +37,7 @@ export default function AdminTournamentClient({ teams: initialTeams, players: in
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>🏆 Tournament Management</h1>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Tournament Management</h1>
         <button
           onClick={() => activeTab === 'teams' ? setShowAddTeam(!showAddTeam) : setShowAddPlayer(!showAddPlayer)}
           className="btn btn-primary"
@@ -48,10 +48,10 @@ export default function AdminTournamentClient({ teams: initialTeams, players: in
 
       <div className="tabs" style={{ marginBottom: 24, maxWidth: 300 }}>
         <button onClick={() => setActiveTab('teams')} className={`tab ${activeTab === 'teams' ? 'tab-active' : ''}`}>
-          🏳️ Teams ({initialTeams.length})
+          Teams ({initialTeams.length})
         </button>
         <button onClick={() => setActiveTab('players')} className={`tab ${activeTab === 'players' ? 'tab-active' : ''}`}>
-          ⚽ Players ({initialPlayers.length})
+          Players ({initialPlayers.length})
         </button>
       </div>
 

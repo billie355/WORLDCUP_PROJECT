@@ -350,7 +350,7 @@ export default function AdminUsersClient({
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>👥 User Management</h1>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>User Management</h1>
         {!isAdmin && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,

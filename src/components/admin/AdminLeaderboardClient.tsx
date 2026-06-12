@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { adminUpdatePointsConfig } from '@/lib/actions/admin'
 import { adminRecalculateScores } from '@/lib/actions/leaderboard'
-import { RotateCcw, Save, Shield } from 'lucide-react'
+import { RotateCcw, Save, Shield, Trophy } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface AdminLeaderboardClientProps {

@@ -49,7 +49,7 @@ export default function AdminMatchesClient({ matches: initialMatches, teams, cur
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>⚽ Match Management</h1>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Match Management</h1>
         <button onClick={() => setShowAdd(!showAdd)} className="btn btn-primary">
           <Plus size={16} /> Add Match
         </button>
