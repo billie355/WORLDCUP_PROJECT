@@ -163,12 +163,40 @@ export async function adminGetUsers(page = 0, search = '') {
   }
 }
 
-export async function adminBanUser(userId: string, banned: boolean) {
+/** Admin-only: ban a user with reason, message, and optional expiry. */
+export async function adminBanUser(
+  userId: string,
+  banned: boolean,
+  options?: {
+    reason?: string
+    message?: string
+    expiresAt?: string | null // ISO string or null = permanent
+  }
+) {
   try {
-    const { supabase } = await requireAdmin()
+    const { supabase, user: caller } = await requireAdmin()
+
+    const updateData: Record<string, any> = banned
+      ? {
+          is_banned: true,
+          ban_reason: options?.reason ?? null,
+          ban_message: options?.message ?? null,
+          ban_expires_at: options?.expiresAt ?? null,
+          banned_by: caller.id,
+          banned_at: new Date().toISOString(),
+        }
+      : {
+          is_banned: false,
+          ban_reason: null,
+          ban_message: null,
+          ban_expires_at: null,
+          banned_by: null,
+          banned_at: null,
+        }
+
     const { error } = await supabase
       .from('profiles')
-      .update({ is_banned: banned })
+      .update(updateData)
       .eq('id', userId)
 
     if (error) return { error: error.message }

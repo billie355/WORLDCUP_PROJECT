@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef, useEffect } from 'react'
 import { adminBanUser, adminResetUserPredictions, adminChangeUserRole } from '@/lib/actions/admin'
 import { getInitials } from '@/lib/utils'
-import { Ban, RotateCcw, Search, ShieldOff, ChevronDown, Shield, UserCheck, UserX } from 'lucide-react'
+import { Ban, RotateCcw, Search, ShieldOff, ChevronDown, Shield, UserCheck, UserX, X, Clock, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface AdminUsersClientProps {
@@ -17,14 +17,16 @@ const ROLE_STYLES: Record<string, { label: string; color: string; bg: string }> 
   user:   { label: 'Active', color: '#10b981', bg: 'rgba(16,185,129,0.15)' },
 }
 
+const BAN_REASONS = ['Spam', 'Cheating / Prediction Fraud', 'Abusive Behavior', 'Harassment', 'Multiple Accounts', 'Other']
+
 function RoleBadge({ role, isBanned }: { role: string; isBanned: boolean }) {
-  if (isBanned && role === 'user') {
+  if (isBanned && role !== 'admin' && role !== 'staff') {
     return (
       <span style={{
         display: 'inline-flex', alignItems: 'center', gap: 4,
         padding: '2px 8px', borderRadius: 4, fontSize: '0.7rem', fontWeight: 700,
         background: 'rgba(239,68,68,0.15)', color: '#ef4444',
-      }}>Banned</span>
+      }}>🚫 Banned</span>
     )
   }
   const s = ROLE_STYLES[role] ?? ROLE_STYLES.user
@@ -37,7 +39,7 @@ function RoleBadge({ role, isBanned }: { role: string; isBanned: boolean }) {
   )
 }
 
-// Dropdown for changing role (admin only)
+// Role change dropdown
 function RoleDropdown({ user, onRoleChange, disabled }: {
   user: any
   onRoleChange: (userId: string, role: 'user' | 'staff' | 'admin') => void
@@ -54,7 +56,6 @@ function RoleDropdown({ user, onRoleChange, disabled }: {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Cannot change role of another admin
   if (user.role === 'admin') return null
 
   const options: { role: 'user' | 'staff' | 'admin'; label: string; icon: React.ReactNode }[] = (
@@ -64,7 +65,6 @@ function RoleDropdown({ user, onRoleChange, disabled }: {
       { role: 'admin', label: 'Set as Admin', icon: <Shield size={12} /> },
     ] as const
   ).filter(o => o.role !== user.role)
-
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -82,7 +82,7 @@ function RoleDropdown({ user, onRoleChange, disabled }: {
         <div style={{
           position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 50,
           background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-          borderRadius: 8, overflow: 'hidden', minWidth: 140,
+          borderRadius: 8, overflow: 'hidden', minWidth: 145,
           boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
         }}>
           {options.map(({ role, label, icon }) => (
@@ -94,8 +94,7 @@ function RoleDropdown({ user, onRoleChange, disabled }: {
                 padding: '9px 14px', fontSize: '0.8rem', fontWeight: 500,
                 background: 'transparent', border: 'none', cursor: 'pointer',
                 color: ROLE_STYLES[role]?.color ?? 'var(--color-text)',
-                textAlign: 'left',
-                transition: 'background 0.1s',
+                textAlign: 'left', transition: 'background 0.1s',
               }}
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -110,6 +109,162 @@ function RoleDropdown({ user, onRoleChange, disabled }: {
   )
 }
 
+// Ban modal
+function BanModal({ user, onConfirm, onClose, isPending }: {
+  user: any
+  onConfirm: (opts: { reason: string; message: string; expiresAt: string | null }) => void
+  onClose: () => void
+  isPending: boolean
+}) {
+  const [reason, setReason] = useState(BAN_REASONS[0])
+  const [message, setMessage] = useState('')
+  const [durationType, setDurationType] = useState<'permanent' | 'timed'>('permanent')
+  const [expiresAt, setExpiresAt] = useState('')
+
+  // Min datetime for the picker = now + 1 minute
+  const minDatetime = new Date(Date.now() + 60000).toISOString().slice(0, 16)
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (durationType === 'timed' && !expiresAt) {
+      toast.error('Please set a date/time for the ban expiry.')
+      return
+    }
+    onConfirm({
+      reason,
+      message,
+      expiresAt: durationType === 'permanent' ? null : new Date(expiresAt).toISOString(),
+    })
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+    }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div style={{
+        background: 'var(--color-surface)', border: '1px solid rgba(239,68,68,0.25)',
+        borderRadius: 16, padding: 28, maxWidth: 480, width: '100%',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+        animation: 'fadeInUp 0.2s ease',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+          <div>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Ban size={18} color="#ef4444" /> Ban User
+            </h2>
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
+              @{user.username} · {user.display_name}
+            </p>
+          </div>
+          <button onClick={onClose} className="btn btn-ghost btn-sm" style={{ padding: '4px 6px' }}>
+            <X size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {/* Reason */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Reason
+            </label>
+            <select
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              className="input-base"
+              style={{ fontSize: '0.875rem' }}
+            >
+              {BAN_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+
+          {/* Message */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Message to User <span style={{ fontWeight: 400, textTransform: 'none' }}>(shown on their ban page)</span>
+            </label>
+            <textarea
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              placeholder="Write a message explaining the ban to the user..."
+              rows={4}
+              className="input-base"
+              style={{ fontSize: '0.875rem', resize: 'vertical', minHeight: 90 }}
+            />
+          </div>
+
+          {/* Duration */}
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Duration
+            </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* Permanent */}
+              <label style={{
+                display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                padding: '10px 14px', borderRadius: 8,
+                border: `1px solid ${durationType === 'permanent' ? 'rgba(239,68,68,0.4)' : 'var(--color-border)'}`,
+                background: durationType === 'permanent' ? 'rgba(239,68,68,0.06)' : 'transparent',
+                transition: 'all 0.15s',
+              }}>
+                <input type="radio" name="duration" value="permanent" checked={durationType === 'permanent'}
+                  onChange={() => setDurationType('permanent')} style={{ accentColor: '#ef4444' }} />
+                <Lock size={14} color="#ef4444" />
+                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ef4444' }}>Permanent</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginLeft: 'auto' }}>Can only be lifted by admin</span>
+              </label>
+
+              {/* Timed */}
+              <label style={{
+                display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                padding: '10px 14px', borderRadius: 8,
+                border: `1px solid ${durationType === 'timed' ? 'rgba(234,179,8,0.4)' : 'var(--color-border)'}`,
+                background: durationType === 'timed' ? 'rgba(234,179,8,0.06)' : 'transparent',
+                transition: 'all 0.15s',
+              }}>
+                <input type="radio" name="duration" value="timed" checked={durationType === 'timed'}
+                  onChange={() => setDurationType('timed')} style={{ accentColor: '#eab308' }} />
+                <Clock size={14} color="#eab308" />
+                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#eab308' }}>Until a specific date</span>
+              </label>
+
+              {/* Datetime picker */}
+              {durationType === 'timed' && (
+                <div style={{ paddingLeft: 14 }}>
+                  <input
+                    type="datetime-local"
+                    value={expiresAt}
+                    onChange={e => setExpiresAt(e.target.value)}
+                    min={minDatetime}
+                    className="input-base"
+                    style={{ fontSize: '0.875rem' }}
+                    required
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="button" onClick={onClose} className="btn btn-ghost" style={{ flex: 1 }}>
+              Cancel
+            </button>
+            <button type="submit" disabled={isPending} className="btn btn-danger" style={{ flex: 1 }}>
+              <Ban size={14} />
+              {isPending ? 'Banning...' : 'Confirm Ban'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminUsersClient({
   users: initialUsers,
   currentUserRole,
@@ -117,6 +272,7 @@ export default function AdminUsersClient({
   const [users, setUsers] = useState(initialUsers)
   const [search, setSearch] = useState('')
   const [isPending, startTransition] = useTransition()
+  const [banTarget, setBanTarget] = useState<any | null>(null)
   const isAdmin = currentUserRole === 'admin'
 
   const filtered = users.filter((u) =>
@@ -124,13 +280,38 @@ export default function AdminUsersClient({
     u.display_name?.toLowerCase().includes(search.toLowerCase())
   )
 
-  async function handleBan(userId: string, banned: boolean) {
+  function handleBanClick(user: any) {
+    setBanTarget(user)
+  }
+
+  function handleBanConfirm(opts: { reason: string; message: string; expiresAt: string | null }) {
+    if (!banTarget) return
     startTransition(async () => {
-      const result = await adminBanUser(userId, banned)
+      const result = await adminBanUser(banTarget.id, true, opts)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success(`@${banTarget.username} has been banned`)
+        setUsers(prev => prev.map(u => u.id === banTarget.id
+          ? { ...u, is_banned: true, ban_reason: opts.reason, ban_expires_at: opts.expiresAt }
+          : u
+        ))
+        setBanTarget(null)
+      }
+    })
+  }
+
+  function handleUnban(userId: string, username: string) {
+    if (!confirm(`Unban @${username}? They will regain full access immediately.`)) return
+    startTransition(async () => {
+      const result = await adminBanUser(userId, false)
       if (result?.error) toast.error(result.error)
       else {
-        toast.success(banned ? 'User banned' : 'User unbanned')
-        setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_banned: banned } : u))
+        toast.success('User unbanned')
+        setUsers(prev => prev.map(u => u.id === userId
+          ? { ...u, is_banned: false, ban_reason: null, ban_expires_at: null }
+          : u
+        ))
       }
     })
   }
@@ -159,6 +340,16 @@ export default function AdminUsersClient({
 
   return (
     <div>
+      {/* Ban modal */}
+      {banTarget && (
+        <BanModal
+          user={banTarget}
+          onConfirm={handleBanConfirm}
+          onClose={() => setBanTarget(null)}
+          isPending={isPending}
+        />
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>👥 User Management</h1>
         {!isAdmin && (
@@ -193,7 +384,7 @@ export default function AdminUsersClient({
             {/* Header */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isAdmin ? '1fr 120px 80px 130px 200px' : '1fr 120px 80px 130px 100px',
+              gridTemplateColumns: isAdmin ? '1fr 120px 80px 140px 220px' : '1fr 120px 80px 140px 100px',
               gap: 16, padding: '12px 24px',
               borderBottom: '1px solid var(--color-border)',
               fontSize: '0.72rem', color: 'var(--color-text-muted)',
@@ -209,7 +400,7 @@ export default function AdminUsersClient({
             {filtered.map((user) => (
               <div key={user.id} style={{
                 display: 'grid',
-                gridTemplateColumns: isAdmin ? '1fr 120px 80px 130px 200px' : '1fr 120px 80px 130px 100px',
+                gridTemplateColumns: isAdmin ? '1fr 120px 80px 140px 220px' : '1fr 120px 80px 140px 100px',
                 gap: 16, padding: '14px 24px', alignItems: 'center',
                 borderBottom: '1px solid var(--color-border)',
                 background: user.is_banned ? 'rgba(239,68,68,0.03)' : 'transparent',
@@ -240,13 +431,21 @@ export default function AdminUsersClient({
                   {user.leaderboard?.total_points?.toLocaleString() || 0}
                 </span>
 
-                {/* Role / Status badge */}
-                <div>
+                {/* Role / Status + ban expiry */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <RoleBadge role={user.role} isBanned={user.is_banned} />
+                  {user.is_banned && user.ban_expires_at && (
+                    <span style={{ fontSize: '0.68rem', color: '#eab308' }}>
+                      Until {new Date(user.ban_expires_at).toLocaleDateString()}
+                    </span>
+                  )}
+                  {user.is_banned && !user.ban_expires_at && (
+                    <span style={{ fontSize: '0.68rem', color: '#ef4444' }}>Permanent</span>
+                  )}
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                   {/* Reset — both admin and staff */}
                   {user.role !== 'admin' && (
                     <button
@@ -262,19 +461,30 @@ export default function AdminUsersClient({
 
                   {/* Ban/Unban — admin only */}
                   {isAdmin && user.role !== 'admin' && (
-                    <button
-                      onClick={() => handleBan(user.id, !user.is_banned)}
-                      disabled={isPending}
-                      className={`btn btn-sm ${user.is_banned ? 'btn-secondary' : 'btn-danger'}`}
-                      style={{ padding: '5px 10px' }}
-                      title={user.is_banned ? 'Unban user' : 'Ban user'}
-                    >
-                      {user.is_banned ? <ShieldOff size={12} /> : <Ban size={12} />}
-                      {user.is_banned ? 'Unban' : 'Ban'}
-                    </button>
+                    user.is_banned ? (
+                      <button
+                        onClick={() => handleUnban(user.id, user.username)}
+                        disabled={isPending}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: '5px 10px' }}
+                        title="Unban user"
+                      >
+                        <ShieldOff size={12} /> Unban
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleBanClick(user)}
+                        disabled={isPending}
+                        className="btn btn-danger btn-sm"
+                        style={{ padding: '5px 10px' }}
+                        title="Ban user"
+                      >
+                        <Ban size={12} /> Ban
+                      </button>
+                    )
                   )}
 
-                  {/* Change Role — admin only, cannot change other admins */}
+                  {/* Change Role — admin only */}
                   {isAdmin && (
                     <RoleDropdown
                       user={user}

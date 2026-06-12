@@ -52,6 +52,44 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // -------------------------------------------------------
+  // Ban check — runs for all logged-in users except on /banned itself
+  // -------------------------------------------------------
+  if (user && pathname !== '/banned') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_banned, ban_expires_at')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.is_banned) {
+      const now = new Date()
+      const expiresAt = profile.ban_expires_at ? new Date(profile.ban_expires_at) : null
+
+      if (expiresAt && expiresAt <= now) {
+        // Timed ban has expired — auto-unban using service role key if available,
+        // otherwise fall back to anon client (RLS must allow self-update or use trigger)
+        await supabase
+          .from('profiles')
+          .update({
+            is_banned: false,
+            ban_reason: null,
+            ban_message: null,
+            ban_expires_at: null,
+            banned_by: null,
+            banned_at: null,
+          })
+          .eq('id', user.id)
+        // Allow through — ban has expired
+      } else {
+        // Still banned — redirect to /banned page
+        const url = request.nextUrl.clone()
+        url.pathname = '/banned'
+        return NextResponse.redirect(url)
+      }
+    }
+  }
+
   return supabaseResponse
 }
 
