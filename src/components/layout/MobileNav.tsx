@@ -35,13 +35,13 @@ export default function MobileNav({ profile }: MobileNavProps) {
         )
       })}
       
-      {profile?.role === 'admin' && (
+      {(profile?.role === 'admin' || profile?.role === 'staff') && (
         <Link
           href="/admin"
           className={`mobile-nav-item ${pathname.startsWith('/admin') ? 'active' : ''}`}
         >
           <Settings size={22} strokeWidth={pathname.startsWith('/admin') ? 2.5 : 2} />
-          <span>Admin</span>
+          <span>{profile?.role === 'admin' ? 'Admin' : 'Staff'}</span>
         </Link>
       )}
     </nav>

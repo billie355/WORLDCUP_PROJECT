@@ -89,11 +89,11 @@ export default function AppSidebar({ profile, leaderboard }: AppSidebarProps) {
           )
         })}
 
-        {/* Admin link if admin */}
-        {profile?.role === 'admin' && (
+        {/* Admin/Staff link */}
+        {(profile?.role === 'admin' || profile?.role === 'staff') && (
           <>
             <div style={{ margin: '16px 0 8px', padding: '0 8px 8px', fontSize: '0.7rem', color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, borderTop: '1px solid var(--color-border)' }}>
-              Admin
+              {profile?.role === 'admin' ? 'Admin' : 'Staff'}
             </div>
             <Link
               href="/admin"
@@ -101,7 +101,7 @@ export default function AppSidebar({ profile, leaderboard }: AppSidebarProps) {
               style={{ marginBottom: 2 }}
             >
               <Settings size={18} />
-              Admin Panel
+              {profile?.role === 'admin' ? 'Admin Panel' : 'Staff Panel'}
             </Link>
           </>
         )}
