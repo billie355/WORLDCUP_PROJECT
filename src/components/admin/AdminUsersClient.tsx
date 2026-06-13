@@ -110,6 +110,17 @@ function RoleDropdown({ user, onRoleChange, disabled }: {
 }
 
 // Ban modal
+const QUICK_DURATIONS = [
+  { label: '1 hr',  hours: 1 },
+  { label: '3 hrs', hours: 3 },
+  { label: '6 hrs', hours: 6 },
+  { label: '12 hrs', hours: 12 },
+  { label: '24 hrs', hours: 24 },
+  { label: '3 days', hours: 72 },
+  { label: '7 days', hours: 168 },
+  { label: '30 days', hours: 720 },
+]
+
 function BanModal({ user, onConfirm, onClose, isPending }: {
   user: any
   onConfirm: (opts: { reason: string; message: string; expiresAt: string | null }) => void
@@ -118,22 +129,38 @@ function BanModal({ user, onConfirm, onClose, isPending }: {
 }) {
   const [reason, setReason] = useState(BAN_REASONS[0])
   const [message, setMessage] = useState('')
-  const [durationType, setDurationType] = useState<'permanent' | 'timed'>('permanent')
+  const [durationType, setDurationType] = useState<'permanent' | 'quick' | 'custom'>('permanent')
+  const [selectedQuick, setSelectedQuick] = useState<number | null>(null)
   const [expiresAt, setExpiresAt] = useState('')
 
   // Min datetime for the picker = now + 1 minute
   const minDatetime = new Date(Date.now() + 60000).toISOString().slice(0, 16)
 
+  function getExpiresAtISO(): string | null {
+    if (durationType === 'permanent') return null
+    if (durationType === 'quick' && selectedQuick !== null) {
+      return new Date(Date.now() + selectedQuick * 3600000).toISOString()
+    }
+    if (durationType === 'custom' && expiresAt) {
+      return new Date(expiresAt).toISOString()
+    }
+    return null
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (durationType === 'timed' && !expiresAt) {
+    if (durationType === 'quick' && selectedQuick === null) {
+      toast.error('Please select a duration.')
+      return
+    }
+    if (durationType === 'custom' && !expiresAt) {
       toast.error('Please set a date/time for the ban expiry.')
       return
     }
     onConfirm({
       reason,
       message,
-      expiresAt: durationType === 'permanent' ? null : new Date(expiresAt).toISOString(),
+      expiresAt: getExpiresAtISO(),
     })
   }
 
@@ -151,6 +178,7 @@ function BanModal({ user, onConfirm, onClose, isPending }: {
         border: '1px solid var(--color-border)',
         borderRadius: 14, padding: 28, maxWidth: 460, width: '100%',
         boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+        maxHeight: '90vh', overflowY: 'auto',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -205,6 +233,7 @@ function BanModal({ user, onConfirm, onClose, isPending }: {
               Duration
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {/* Permanent */}
               <label style={{
                 display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
                 padding: '10px 14px', borderRadius: 8,
@@ -213,39 +242,80 @@ function BanModal({ user, onConfirm, onClose, isPending }: {
                 transition: 'all 0.12s',
               }}>
                 <input type="radio" name="duration" value="permanent" checked={durationType === 'permanent'}
-                  onChange={() => setDurationType('permanent')} style={{ accentColor: '#ef4444', flexShrink: 0 }} />
+                  onChange={() => { setDurationType('permanent'); setSelectedQuick(null) }} style={{ accentColor: '#ef4444', flexShrink: 0 }} />
                 <div>
                   <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Permanent</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', marginTop: 1 }}>Can be lifted manually by an admin at any time</div>
                 </div>
               </label>
 
+              {/* Quick Duration */}
               <label style={{
-                display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
                 padding: '10px 14px', borderRadius: 8,
-                border: `1px solid ${durationType === 'timed' ? 'rgba(255,255,255,0.15)' : 'var(--color-border)'}`,
-                background: durationType === 'timed' ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${durationType === 'quick' ? 'rgba(255,255,255,0.15)' : 'var(--color-border)'}`,
+                background: durationType === 'quick' ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
                 transition: 'all 0.12s',
               }}>
-                <input type="radio" name="duration" value="timed" checked={durationType === 'timed'}
-                  onChange={() => setDurationType('timed')} style={{ accentColor: 'var(--color-gold)', flexShrink: 0 }} />
+                <input type="radio" name="duration" value="quick" checked={durationType === 'quick'}
+                  onChange={() => { setDurationType('quick'); setExpiresAt('') }} style={{ accentColor: 'var(--color-gold)', flexShrink: 0, marginTop: 3 }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Until a specific date</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', marginTop: 1 }}>Account is restored automatically when the date passes</div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Timed suspension</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', marginTop: 1, marginBottom: 10 }}>Automatically lifted after the selected duration</div>
+                  {durationType === 'quick' && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {QUICK_DURATIONS.map(d => (
+                        <button
+                          key={d.hours}
+                          type="button"
+                          onClick={() => setSelectedQuick(d.hours)}
+                          style={{
+                            padding: '5px 12px', borderRadius: 6, fontSize: '0.78rem', fontWeight: 600,
+                            border: `1px solid ${selectedQuick === d.hours ? 'var(--color-gold)' : 'var(--color-border)'}`,
+                            background: selectedQuick === d.hours ? 'rgba(234,179,8,0.12)' : 'rgba(255,255,255,0.03)',
+                            color: selectedQuick === d.hours ? '#eab308' : 'var(--color-text-muted)',
+                            cursor: 'pointer', transition: 'all 0.12s',
+                          }}
+                        >
+                          {d.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {durationType === 'quick' && selectedQuick !== null && (
+                    <div style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', marginTop: 8 }}>
+                      Ban expires: {new Date(Date.now() + selectedQuick * 3600000).toLocaleString()}
+                    </div>
+                  )}
                 </div>
               </label>
 
-              {durationType === 'timed' && (
-                <input
-                  type="datetime-local"
-                  value={expiresAt}
-                  onChange={e => setExpiresAt(e.target.value)}
-                  min={minDatetime}
-                  className="input-base"
-                  style={{ fontSize: '0.875rem', marginTop: 2 }}
-                  required
-                />
-              )}
+              {/* Custom date/time */}
+              <label style={{
+                display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
+                padding: '10px 14px', borderRadius: 8,
+                border: `1px solid ${durationType === 'custom' ? 'rgba(255,255,255,0.15)' : 'var(--color-border)'}`,
+                background: durationType === 'custom' ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+                transition: 'all 0.12s',
+              }}>
+                <input type="radio" name="duration" value="custom" checked={durationType === 'custom'}
+                  onChange={() => { setDurationType('custom'); setSelectedQuick(null) }} style={{ accentColor: 'var(--color-gold)', flexShrink: 0, marginTop: 3 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Until a specific date</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', marginTop: 1 }}>Account is restored automatically when the date passes</div>
+                  {durationType === 'custom' && (
+                    <input
+                      type="datetime-local"
+                      value={expiresAt}
+                      onChange={e => setExpiresAt(e.target.value)}
+                      min={minDatetime}
+                      className="input-base"
+                      style={{ fontSize: '0.875rem', marginTop: 8 }}
+                      required
+                    />
+                  )}
+                </div>
+              </label>
             </div>
           </div>
 

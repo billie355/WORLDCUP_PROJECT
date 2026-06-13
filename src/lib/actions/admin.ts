@@ -163,7 +163,10 @@ export async function adminGetUsers(page = 0, search = '') {
   }
 }
 
-/** Admin-only: ban a user with reason, message, and optional expiry. */
+/** Admin-only: ban a user with reason, message, and optional expiry.
+ *  Uses service-role client to bypass RLS (profiles RLS only allows
+ *  users to update their OWN row, so the anon-key client silently
+ *  fails when an admin tries to update another user's profile). */
 export async function adminBanUser(
   userId: string,
   banned: boolean,
@@ -174,7 +177,10 @@ export async function adminBanUser(
   }
 ) {
   try {
-    const { supabase, user: caller } = await requireAdmin()
+    const { user: caller } = await requireAdmin()
+
+    // Use admin client (service role) to bypass RLS
+    const adminSupabase = await createAdminClient()
 
     const updateData: Record<string, any> = banned
       ? {
@@ -194,7 +200,7 @@ export async function adminBanUser(
           banned_at: null,
         }
 
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('profiles')
       .update(updateData)
       .eq('id', userId)
@@ -220,7 +226,9 @@ export async function adminChangeUserRole(userId: string, role: string) {
       
     if (targetProfile?.role === 'admin') throw new Error('Cannot modify admin roles')
 
-    const { error } = await supabase
+    // Use admin client to bypass RLS for updating another user's profile
+    const adminSupabase = await createAdminClient()
+    const { error } = await adminSupabase
       .from('profiles')
       .update({ role })
       .eq('id', userId)

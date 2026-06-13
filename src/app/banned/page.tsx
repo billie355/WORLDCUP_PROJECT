@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { signOut } from '@/lib/actions/auth'
 import type { Metadata } from 'next'
@@ -11,7 +11,9 @@ export default async function BannedPage() {
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  // Use admin client to bypass RLS and ensure we always get accurate ban data
+  const adminSupabase = await createAdminClient()
+  const { data: profile } = await adminSupabase
     .from('profiles')
     .select('is_banned, ban_reason, ban_message, ban_expires_at, banned_at, display_name, username')
     .eq('id', user.id)
