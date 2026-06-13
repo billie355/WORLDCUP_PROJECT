@@ -1,6 +1,6 @@
 // Database types for the World Cup Prediction Platform
 
-export type UserRole = 'user' | 'admin'
+export type UserRole = 'user' | 'admin' | 'staff'
 export type MatchStage = 'group' | 'round_of_32' | 'round_of_16' | 'quarter_final' | 'semi_final' | 'third_place' | 'final'
 export type MatchStatus = 'scheduled' | 'live' | 'finished' | 'postponed' | 'cancelled'
 export type PlayerPosition = 'GK' | 'DEF' | 'MID' | 'FWD'
